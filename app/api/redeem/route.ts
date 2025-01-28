@@ -3,6 +3,7 @@ import db from "@/lib/database";
 import { createJob, jobs } from "@/lib/jobs";
 import { execSync } from "child_process";
 import { RowDataPacket } from "mysql2";
+import { checkRule } from "@/lib/checkRule";
 
 export async function POST(req: Request) {
     try {
@@ -40,9 +41,11 @@ export async function POST(req: Request) {
         await db.query('UPDATE vouchers SET used = 1 WHERE voucher = ?;', [voucher]);
         const [final]= await db.query<RowDataPacket[]>('SELECT * FROM users WHERE mac = ?;', [mac]);
         jobs.get(mac)?.stop();
-        createJob(mac, (new Date(final[0].expire_on).getTime() - 13000).toString());
+        createJob(mac, final[0].expire_on);
 
-        execSync(`#iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${mac} -j ACCEPT`);
+        if (checkRule(mac)) {
+            execSync(`#iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${mac} -j ACCEPT`);
+        }
 
         return Response.json({msg: 'succes', user: {...final[0]}}, { status: 200 });
     } catch (error) {
