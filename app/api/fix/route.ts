@@ -20,7 +20,7 @@ export async function GET(req: Request) {
         }
 
         flushRules(mac);
-        if (checkRule(mac)) {
+        if (!checkRule(mac)) {
             execSync(`iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${mac} -j ACCEPT`);
         }
 
