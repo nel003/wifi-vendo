@@ -13,7 +13,7 @@ export const createJob = async (name: string, date: string) => {
             if (result[0].expire_on != null && new Date(result[0].expire_on) <= new Date(Date.now())) {
                 //Block internet
                 console.log("Blocking internet for ", name);
-                execSync(`#iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${name} -j ACCEPT`);
+                execSync(`iptables -D FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${name} -j ACCEPT`);
                 jobs.get(name)?.stop();
                 jobs.set(name, null);
             } else {

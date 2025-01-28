@@ -21,7 +21,7 @@ export async function GET(req: Request) {
 
         flushRules(mac);
         if (checkRule(mac)) {
-            execSync(`#iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${mac} -j ACCEPT`);
+            execSync(`iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${mac} -j ACCEPT`);
         }
 
         return Response.json({msg: 'success', ...rows[0]}, { status: 200 });
