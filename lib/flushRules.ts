@@ -11,7 +11,7 @@ export function flushRules(mac: string) {
         if (match) {
           const lineNumber = match[1];
           console.log(`Deleting rule for MAC ${mac} at line number ${lineNumber}`);
-          execSync(`sudo iptables -D FORWARD ${lineNumber}`);
+          execSync(`iptables -D FORWARD ${lineNumber}`);
         }
       }
     });
