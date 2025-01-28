@@ -1,8 +1,8 @@
 import { execSync } from 'child_process';
 
-export function checkRule(rule: string): boolean {
+export function checkRule(mac: string): boolean {
     try {
-        const command = `iptables -L FORWARD -v -n --line-numbers | grep '${rule}'`;
+        const command = `iptables -L FORWARD -v -n --line-numbers | grep '${mac}'`;
         const stdout = execSync(command, { encoding: 'utf8' });
 
         if (!stdout) {
@@ -14,5 +14,3 @@ export function checkRule(rule: string): boolean {
         return false;
     }
 }
-
-checkRule("b0:3c:dc:82:bf:13");

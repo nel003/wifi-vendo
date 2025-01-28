@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         jobs.get(mac)?.stop();
         createJob(mac, final[0].expire_on);
 
-        if (checkRule(mac)) {
+        if (!checkRule(mac)) {
             execSync(`#iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${mac} -j ACCEPT`);
         }
 
