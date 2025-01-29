@@ -61,7 +61,7 @@ export default function Voucher() {
             </div>
 
             <h1 className="text-center py-1 text-lg text-slate-800">Voucher</h1>
-            <InputOTP pattern={REGEXP_ONLY_DIGITS_AND_CHARS} maxLength={6} onChange={(v) => setVoucher(v)} value={voucher}>
+            <InputOTP inputMode="text" pattern={REGEXP_ONLY_DIGITS_AND_CHARS} maxLength={6} onChange={(v) => setVoucher(v)} value={voucher}>
             <InputOTPGroup>
                 <InputOTPSlot className="p-0 xs:p-6" index={0} />
                 <InputOTPSlot className="p-0 xs:p-6" index={1} />
