@@ -13,6 +13,7 @@ import { userStore } from "@/store/user";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast"
 import { ErrorResponse } from "@/types/types";
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 
 export default function Voucher() {
     const setUser = userStore(store => store.setUser);
@@ -60,7 +61,7 @@ export default function Voucher() {
             </div>
 
             <h1 className="text-center py-1 text-lg text-slate-800">Voucher</h1>
-            <InputOTP maxLength={6} onChange={(v) => setVoucher(v)} value={voucher}>
+            <InputOTP pattern={REGEXP_ONLY_DIGITS_AND_CHARS} maxLength={6} onChange={(v) => setVoucher(v)} value={voucher}>
             <InputOTPGroup>
                 <InputOTPSlot className="p-0 xs:p-6" index={0} />
                 <InputOTPSlot className="p-0 xs:p-6" index={1} />
