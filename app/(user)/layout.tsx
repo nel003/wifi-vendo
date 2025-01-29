@@ -28,7 +28,7 @@ export default function Userlayout({
     }, [setUser]);
 
     return loading ? (
-        <div className="grid place-items-center h-screen w-screen">
+        <div className="grid place-items-center h-[100dvh] w-screen">
             <div className="flex flex-col items-center">
                 <Skeleton className="w-[3rem] h-[3rem] rounded-full" />
                 <Skeleton className="w-[3rem] h-[1.5rem] rounded-sm my-2" />

@@ -1,6 +1,5 @@
 import { RowDataPacket } from "mysql2";
 import db from "./lib/database";
-import { exit } from "process";
 import { flushRules } from "./lib/flushRules";
 import { checkRule } from "./lib/checkRule";
 import { execSync } from "child_process";
@@ -21,7 +20,7 @@ async function init() {
         console.error(error);
     }
 
-    exit(0);
+    setInterval(() => {}, 1 << 30);
 }
 
 init();

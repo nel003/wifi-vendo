@@ -12,3 +12,17 @@ export interface ErrorResponse {
       };
     };
   }
+
+export interface Rate {
+    id: number;
+    name: string;
+    time: number;
+    price: number;
+}
+
+export interface Voucher {
+    id: number;
+    voucher: string;
+    time: number;
+    used: boolean;
+}

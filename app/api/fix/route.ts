@@ -1,3 +1,5 @@
+process.env.PROD = 'false';
+
 import { getMacFromIp } from "@/utils/getMAC";
 import db from "@/lib/database";
 import {  RowDataPacket } from "mysql2";
@@ -19,9 +21,11 @@ export async function GET(req: Request) {
             return Response.json({msg: "Not enough time!"}, { status: 500 });
         }
 
-        flushRules(mac);
-        if (!checkRule(mac)) {
-            execSync(`iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${mac} -j ACCEPT`);
+        if (process.env.PROD === 'true') {
+            flushRules(mac);
+            if (!checkRule(mac)) {
+                execSync(`iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${mac} -j ACCEPT`);
+            }
         }
 
         return Response.json({msg: 'success', ...rows[0]}, { status: 200 });
