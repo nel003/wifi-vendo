@@ -1,7 +1,7 @@
 "use client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { userStore } from "@/store/user";
-import { ChartNoAxesGantt, EllipsisVertical, LaptopMinimal, Router, Ticket, Unplug, X } from "lucide-react";
+import { ChartNoAxesGantt, EllipsisVertical, Fingerprint, LaptopMinimal, Router, Ticket, Unplug, X } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -300,7 +300,8 @@ export default function Home() {
                             <DropdownMenuLabel>Details - {(new Date(user?.expire_on || "").toDateString())}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem><Router/>{user?.ip}</DropdownMenuItem>
-                            <DropdownMenuItem><LaptopMinimal/> {user?.mac}</DropdownMenuItem>
+                            <DropdownMenuItem><LaptopMinimal/> {user?.device}</DropdownMenuItem>
+                            <DropdownMenuItem><Fingerprint/> {user?.mac}</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={fix}>
                                 <Unplug />

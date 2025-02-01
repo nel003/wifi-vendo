@@ -1,6 +1,6 @@
 process.env.PROD = 'false';
 
-import { getMacFromIp } from "@/utils/getMAC";
+import { getMacFromIp } from "@/utils/getDeviceInfoFromIp";
 import db from "@/lib/database";
 import {  RowDataPacket } from "mysql2";
 import { checkRule } from "@/lib/checkRule";
