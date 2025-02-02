@@ -71,7 +71,7 @@ export default function Home() {
 
     const loadRates = useCallback(async () => {
         try {
-            const res = await axios.get('/api/admin/rates');
+            const res = await axios.get('/api/rates');
             setRates(res.data)
         } catch (error) {
             console.error(error)

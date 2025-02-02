@@ -1,5 +1,3 @@
-process.env.PROD = 'false';
-
 import { getDeviceInfoFromIp } from "@/utils/getDeviceInfoFromIp";
 import db from "@/lib/database";
 import { createJob, jobs } from "@/lib/jobs";
@@ -20,31 +18,31 @@ export async function POST(req: Request) {
         }
 
         
-        const [rows]= await db.query<RowDataPacket[]>('SELECT * FROM users WHERE mac = ?;', [info.mac]);
+        const [rows]= await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [info.mac]);
         if(isSameDate(new Date(rows[0].last_attempt), new Date()) && rows[0].attempts >= 5) {
             return Response.json({msg: "Too many attempts, try again tomorrows!"}, { status: 400 });
         }
 
         const [vouch]= await db.query<RowDataPacket[]>('SELECT * FROM vouchers WHERE voucher = ? AND used = 0;', [voucher]);
         if(vouch.length == 0) {
-            await db.query("UPDATE users SET attempts = attempts + 1, last_attempt = NOW() WHERE mac = ?;", [info.mac]);
+            await db.query("UPDATE clients SET attempts = attempts + 1, last_attempt = NOW() WHERE mac = ?;", [info.mac]);
             return Response.json({msg: "Voucher not found or Expired"}, { status: 404 });
         }
 
         if(!isSameDate(new Date(rows[0].last_attempt), new Date())) {
-            await db.query("UPDATE users SET attempts = 0, last_attempt = NOW() WHERE mac = ?;", [info.mac]);
+            await db.query("UPDATE clients SET attempts = 0, last_attempt = NOW() WHERE mac = ?;", [info.mac]);
         } 
         
         if(rows[0].expire_on == null || new Date(rows[0].expire_on) < new Date(Date.now())) {
             const query = `
-                UPDATE users
+                UPDATE clients
                 SET expire_on = DATE_ADD(NOW(), INTERVAL ? MINUTE)
                 WHERE mac = ?
             `;
             await db.execute(query, [vouch[0].time, info.mac]);
         } else {
             const query = `
-                UPDATE users
+                UPDATE clients
                 SET expire_on = DATE_ADD(expire_on, INTERVAL ? MINUTE)
                 WHERE mac = ?
             `;
@@ -52,7 +50,7 @@ export async function POST(req: Request) {
         }
 
         await db.query('UPDATE vouchers SET used = 1 WHERE voucher = ?;', [voucher]);
-        const [final]= await db.query<RowDataPacket[]>('SELECT * FROM users WHERE mac = ?;', [info.mac]);
+        const [final]= await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [info.mac]);
         jobs.get(info.mac || "")?.stop();
         createJob(info.mac || "", final[0].expire_on);
 

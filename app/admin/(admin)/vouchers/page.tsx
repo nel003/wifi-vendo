@@ -32,6 +32,18 @@ import {
     SelectTrigger,
     SelectValue,
   } from "@/components/ui/select"
+  import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog"
+  
   
 export default function Page() {
     const [rates, setRates] = useState<Rate[] | []>([])  
@@ -41,7 +53,7 @@ export default function Page() {
 
     const [modal, setModal] = useState(false);  
     const [vocuher, setVoucher] = useState("");  
-
+    console.log(vouchers)
     const initRates = useCallback(async () => {
         try {
             const res = await axios.get('/api/admin/rates');
@@ -58,7 +70,8 @@ export default function Page() {
     const initVouchers = useCallback(async () => {
         try {
             const res = await axios.get('/api/admin/vouchers');
-            setVouchers(res.data)
+            const newArr = res.data.map((v: Voucher) => ({...v, hidden: true}));
+            setVouchers(newArr)
         } catch (error) {
             console.error(error)
             toast({
@@ -98,13 +111,35 @@ export default function Page() {
         }
     }
 
+    
+    async function del(id: string | number) {
+        toast({
+            title: 'Processing',
+            description: 'Please wait while deleting the voucher',
+        })
+        try {
+            await axios.delete(`/api/admin/vouchers?id=${id}`);
+            toast({
+                title: 'Success',
+                description: 'Voucher deleted successfully',
+            })
+            initVouchers();
+        } catch (error) {
+            console.error(error)
+            toast({
+                title: 'Error',
+                description: 'Failed to delete voucher',
+            });
+        }
+    }
+
     return(
         <>
             <div className="w-full">
                 <div className="flex justify-between">
                     <h1 className="text-lg font-bold ml-[7px]">Voucher</h1>
                     <Dialog>
-                        <DialogTrigger>
+                        <DialogTrigger asChild>
                             <Button variant="outline" className="ml-[7px]"><Plus/>Create Voucher</Button>
                         </DialogTrigger>
                         <DialogContent>
@@ -143,6 +178,7 @@ export default function Page() {
                         <TableRow>
                             <TableHead className="w-[100px]">ID</TableHead>
                             <TableHead>Voucher</TableHead>
+                            <TableHead>Price</TableHead>
                             <TableHead>Time</TableHead>
                             <TableHead className="text-right">Used</TableHead>
                             <TableHead className=" w-[200px]"></TableHead>
@@ -152,12 +188,29 @@ export default function Page() {
                         {vouchers.map((vouch) => (
                             <TableRow key={vouch.id}>
                                 <TableCell>{vouch.id}</TableCell>
-                                <TableCell>{vouch.voucher}</TableCell>
+                                <TableCell onClick={() => setVouchers(vouchers.map(v => ({...v, hidden: v.id === vouch.id ? !v.hidden : v.hidden})))}>{vouch.hidden ? vouch.voucher.slice(0,1) + "*****" : vouch.voucher}</TableCell>
+                                <TableCell>{vouch.price.toLocaleString("en-PH", {style: "currency", currency: "PHP"})}</TableCell>
                                 <TableCell>{vouch.time}</TableCell>
-                                <TableCell className="text-right">{vouch.used}</TableCell>
+                                <TableCell className="text-right">{vouch.used ? "True" : "False"}</TableCell>
                                 <TableCell className="flex justify-end w-[200px] gap-3">
-                                    <Button variant="ghost">Delete</Button>
-                                    <Button>Edit</Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                                <Button>Delete</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently delete your account
+                                                and remove your data from our servers.
+                                            </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => del(vouch.id)}>Continue</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </TableCell>
                             </TableRow>
                         ))}

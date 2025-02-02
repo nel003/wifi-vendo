@@ -12,13 +12,13 @@ export async function GET(req: Request) {
         }
 
         const query = `
-            INSERT INTO users (ip, mac, device)
+            INSERT INTO clients (ip, mac, device)
             VALUES (?, ?, ?)
             ON DUPLICATE KEY UPDATE ip = VALUES(ip), device = VALUES(device)
         `;
         await db.execute(query, [ip, info.mac, info.deviceName]);
 
-        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM users WHERE mac = ?;', [info.mac]);
+        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [info.mac]);
         console.log(rows);
         return Response.json({msg: 'succes', ...rows[0]}, { status: 200 });
     } catch (error) {
