@@ -6,11 +6,12 @@ export function checkRule(mac: string): boolean {
         const stdout = execSync(command, { encoding: 'utf8' });
 
         if (!stdout) {
+            console.log('Rule does not exist');
             return false;
         }
         return true;
-    } catch (error) {
-        console.error('Rule does not exist:', error);
+    } catch (_) {
+        console.log('Rule does not exist');
         return false;
     }
 }

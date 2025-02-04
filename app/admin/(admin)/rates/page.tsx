@@ -180,17 +180,17 @@ export default function Page() {
                             <TableHead>Name</TableHead>
                             <TableHead>Time</TableHead>
                             <TableHead className="text-right">Price</TableHead>
-                            <TableHead className=" w-[200px]"></TableHead>
+                            <TableHead></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {rates.map((rate) => (
                             <TableRow key={rate.id}>
                                 <TableCell>{rate.id}</TableCell>
-                                <TableCell>{rate.name}</TableCell>
-                                <TableCell>{rate.time}</TableCell>
+                                <TableCell className="whitespace-nowrap">{rate.name}</TableCell>
+                                <TableCell className="whitespace-nowrap">{rate.time}</TableCell>
                                 <TableCell className="text-right">{rate.price}</TableCell>
-                                <TableCell className="flex justify-end w-[200px] gap-3">
+                                <TableCell className="flex justify-end gap-3">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost">Delete</Button>

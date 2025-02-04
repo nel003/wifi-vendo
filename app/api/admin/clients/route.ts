@@ -1,7 +1,7 @@
 import { checkRule } from "@/lib/checkRule";
 import db from "@/lib/database";
 import { flushRules } from "@/lib/flushRules";
-import handler from "@/lib/handler";
+import handler from "@/app/api/_middleware";
 import { createJob, jobs } from "@/lib/jobs";
 import { execSync } from "child_process";
 import {  RowDataPacket } from "mysql2";

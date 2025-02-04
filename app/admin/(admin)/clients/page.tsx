@@ -101,23 +101,23 @@ export default function Page() {
                     <TableCaption>A list of cliens.</TableCaption>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[100px]">ID</TableHead>
+                            <TableHead>ID</TableHead>
                             <TableHead>MAC</TableHead>
                             <TableHead>Device</TableHead>
                             <TableHead>Label</TableHead>
                             <TableHead className="text-right">Expires</TableHead>
-                            <TableHead className=" w-[200px]"></TableHead>
+                            <TableHead></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {clients.map((client) => (
                             <TableRow key={client.id}>
-                                <TableCell>{client.id}</TableCell>                         
+                                <TableCell className="w-8">{client.id}</TableCell>                         
                                 <TableCell>{client.mac}</TableCell>
-                                <TableCell>{client.device}</TableCell>                         
-                                <TableCell>{client.label}</TableCell>                         
-                                <TableCell className="text-right">{new Date(client.expire_on).toLocaleString()}</TableCell>
-                                <TableCell className="flex justify-end w-[200px] gap-3">
+                                <TableCell className="whitespace-nowrap">{client.device}</TableCell>                         
+                                <TableCell className="whitespace-nowrap">{client.label}</TableCell>                         
+                                <TableCell className="text-right py-4 whitespace-nowrap">{new Date(client.expire_on).toLocaleString()}</TableCell>
+                                <TableCell className="flex justify-end gap-3 w-auto">
                                     <Dialog onOpenChange={() => setLabel(client.label || "")}>
                                         <DialogTrigger asChild>
                                             <Button>Edit</Button>

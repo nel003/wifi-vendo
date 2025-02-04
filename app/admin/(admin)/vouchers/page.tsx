@@ -181,7 +181,7 @@ export default function Page() {
                             <TableHead>Price</TableHead>
                             <TableHead>Time</TableHead>
                             <TableHead className="text-right">Used</TableHead>
-                            <TableHead className=" w-[200px]"></TableHead>
+                            <TableHead className=""></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -192,7 +192,7 @@ export default function Page() {
                                 <TableCell>{vouch.price.toLocaleString("en-PH", {style: "currency", currency: "PHP"})}</TableCell>
                                 <TableCell>{vouch.time}</TableCell>
                                 <TableCell className="text-right">{vouch.used ? "True" : "False"}</TableCell>
-                                <TableCell className="flex justify-end w-[200px] gap-3">
+                                <TableCell className="flex justify-end gap-3">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                                 <Button>Delete</Button>

@@ -1,5 +1,5 @@
 import db from "@/lib/database";
-import handler from "@/lib/handler";
+import handler from "@/app/api/_middleware";
 import {  RowDataPacket } from "mysql2";
 
 export const GET = handler(async () => {

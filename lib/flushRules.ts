@@ -17,8 +17,9 @@ export function flushRules(mac: string) {
     });
 
     console.log(`All FORWARD rules for MAC ${mac} have been flushed.`);
-  } catch (error) {
-    console.log("Error flushing FORWARD rules:", error);
+  } catch (_) {
+    console.log("No rules to flush.")
+    // console.log("Error flushing FORWARD rules:", error);
   }
 }
 

@@ -46,3 +46,14 @@ export interface Clients {
   device: string;
   label: string;
 }
+
+export interface Dashboard {
+  ramUsage: number
+  cpuUsage: number
+  storageUsage: number
+  sales: number
+  voucher_count: number
+  used_count: number
+  rate_count: number
+  client_count: number
+}

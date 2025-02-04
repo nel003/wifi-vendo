@@ -12,9 +12,10 @@ export default function handler(route: (req?: Request) => Promise<Response>) {
             if (!(await jwt.verify(token, process.env.SECRET || ""))) {
                 return Response.json({msg: "Invalid or expired token!"}, {status: 300});
             }
-            return route(req);
+            return await route(req);
         } catch (error: any) {
-            return Response.json({msg: "Invalid or expired token!"}, {status: 300});
+            console.log(error)
+            return Response.json({msg: "Invalid or expired token! err"}, {status: 300});
         }
     }
 }
