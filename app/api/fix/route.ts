@@ -21,10 +21,8 @@ export async function GET(req: Request) {
         }
         
         if (process.env.PROD === 'true') {
-            flushRules(info.mac || "");
-
             if (!checkRule(info.mac || "")) {
-                execSync(`iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${info.mac} -j ACCEPT`);
+                execSync(`ipset add allowed_macs ${info.mac}`);
                 
                 jobs.get(info.mac || "")?.stop();
                 createJob(info.mac || "", rows[0].expire_on);

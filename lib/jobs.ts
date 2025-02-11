@@ -9,11 +9,11 @@ export const createJob = async (name: string, date: string) => {
     console.log("Creating job ", date);
     try {
         jobs.set(name,  new CronJob(new Date(date), async () => {
-            const [result] = await db.query<RowDataPacket[]>('SELECT * FROM users WHERE mac = ?;', [name]);
+            const [result] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [name]);
             if (result[0].expire_on != null && new Date(result[0].expire_on) <= new Date(Date.now())) {
                 //Block internet
                 console.log("Blocking internet for ", name);
-                execSync(`iptables -D FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${name} -j ACCEPT`);
+                execSync(`ipset del allowed_macs ${name}`);
                 jobs.get(name)?.stop();
                 jobs.set(name, null);
             } else {

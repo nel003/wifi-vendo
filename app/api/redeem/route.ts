@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         createJob(info.mac || "", final[0].expire_on);
 
         if (process.env.PROD === 'true' && !checkRule(info.mac || "")) {
-            execSync(`iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${info.mac} -j ACCEPT`);
+            execSync(`ipset add allowed_macs ${info.mac}`);
         }
 
         return Response.json({msg: 'succes', user: {...final[0]}}, { status: 200 });

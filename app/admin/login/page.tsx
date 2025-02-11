@@ -41,6 +41,9 @@ export default function Login() {
                 description: "Loggin success"
             })
             axios.defaults.headers.common["Authorization"] = "Bearer "+res.data.token;
+            axios.defaults.headers.common["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            axios.defaults.headers.common["Pragma"] = "no-cache";
+            axios.defaults.headers.common["Expires"] = "0";
             router.push("/admin");
         } catch (error: any) {
             console.log(error)

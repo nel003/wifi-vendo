@@ -30,12 +30,11 @@ export const PUT = handler(async (req?: Request) => {
 
         if (process.env.PROD === 'true') {
             if (new Date(formattedDate) <= new Date(Date.now())) {
-                flushRules(mac || "");
+                execSync(`ipset del allowed_macs ${mac}`);
                 jobs.get(mac || "")?.stop();
             } else {
-                flushRules(mac || "");
                 if (!checkRule(mac || "")) {
-                    execSync(`iptables -I FORWARD -i enx00e0990026d3 -o end0 -m mac --mac-source ${mac} -j ACCEPT`);
+                    execSync(`ipset add allowed_macs ${mac}`);
 
                     jobs.get(mac || "")?.stop();
                     createJob(mac || "", formattedDate);
