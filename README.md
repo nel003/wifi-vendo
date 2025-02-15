@@ -300,15 +300,6 @@ Inside the MySQL prompt, run:
 CREATE DATABASE wifi;
 exit;
 ```
-
-### Import Table Schema
-
-Assuming you have a `tables.sql` file, import it:
-
-```bash
-mysql -u root -p wifi < tables.sql
-```
-
 ---
 
 ## 8. Clone and Deploy the Node.js Application
@@ -318,6 +309,13 @@ mysql -u root -p wifi < tables.sql
 ```bash
 git clone https://github.com/nel003/wifi-vendo
 cd wifi-vendo
+```
+### Import Table Schema
+
+Import `tables.sql` file:
+
+```bash
+mysql -u root -p wifi < tables.sql
 ```
 
 ### Install Dependencies and Build
@@ -356,4 +354,3 @@ pm2 startup
 Your captive portal and WiFi management system should now be up and running. Be sure to verify and adjust any interface names, IP addresses, and domain names to match your specific setup. For additional troubleshooting and customization, consult the documentation for each tool (dnsmasq, iptables, NGINX, PM2, etc.).
 
 Happy networking!
-```
