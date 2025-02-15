@@ -271,7 +271,15 @@ sudo systemctl enable nginx
 
 ## 7. Set Up MySQL Database
 
-### Secure MySQL Installation
+### MySQL Installation
+
+```bash
+sudo apt install mariadb-server -y
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+```
+
+### Secure MySQL setup
 
 ```bash
 sudo mysql_secure_installation
