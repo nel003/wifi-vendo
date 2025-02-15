@@ -8,6 +8,7 @@ async function init() {
     try {
        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE expire_on >= NOW();');
        rows.forEach(async (row) => {
+        console.log(checkRule(row.mac))
             if (!checkRule(row.mac)) {
                 execSync(`ipset add allowed_macs ${row.mac}`);
                 createJob(row.mac, row.expire_on);
