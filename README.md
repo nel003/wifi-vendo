@@ -1,151 +1,139 @@
 
-# Captive Portal Setup
+# WiFi Vendo Captive Portal Setup
 
-This document provides a complete guide to setting up a captive portal on a Linux system using the following components:
+This guide provides step-by-step instructions for setting up a captive portal using systemd-resolved, dnsmasq, iptables, NGINX, MySQL, and a Node.js application managed by PM2. This configuration supports DNS/DHCP services on your LAN and redirects unauthorized traffic to a captive portal.
 
-- **systemd-resolved** for DNS resolution
-- **dnsmasq** for DNS and DHCP services
-- **iptables/ipset** for traffic redirection and captive portal enforcement
-- **Node.js** (installed via **nvm**) for the application backend
-- **pm2** to manage the Node.js process
-- **nginx** as a reverse proxy
-- **MySQL** for database support
+> **Note:** Adjust interface names (e.g., `enx00e0990026d3` and `end0`), IP addresses, and domain names to suit your environment.
 
 ---
 
-## Table of Contents
+## Prerequisites
 
-- [System DNS Configuration](#system-dns-configuration)
-- [Dnsmasq Installation and Configuration](#dnsmasq-installation-and-configuration)
-- [Systemd Override for dnsmasq](#systemd-override-for-dnsmasq)
-- [Installing Required Packages](#installing-required-packages)
-- [Installing Node.js with NVM](#installing-nodejs-with-nvm)
-- [Configuring iptables and rc.local](#configuring-iptables-and-rclocal)
-- [Setting Up pm2](#setting-up-pm2)
-- [Nginx Reverse Proxy Setup](#nginx-reverse-proxy-setup)
-- [MySQL Database Setup](#mysql-database-setup)
-- [Cloning and Building the Project](#cloning-and-building-the-project)
-- [Additional Notes](#additional-notes)
-- [Conclusion](#conclusion)
+- A Debian/Ubuntu-based system with `sudo` privileges.
+- Basic familiarity with Linux command-line operations.
+- An active internet connection for package installation.
 
 ---
 
-## System DNS Configuration
+## 1. Configure DNS Resolver
 
-1. **Edit `/etc/systemd/resolved.conf`:**
+### Edit systemd-resolved Configuration
 
-   ```bash
-   sudo nano /etc/systemd/resolved.conf
-   ```
+Open the resolver configuration file:
 
-   Insert or update the following:
+```bash
+sudo nano /etc/systemd/resolved.conf
+```
 
-   ```ini
-   [Resolve]
-   DNS=8.8.8.8 8.8.4.4
-   FallbackDNS=1.1.1.1 1.0.0.1
-   ```
+Replace or add the following under the `[Resolve]` section:
 
-2. **Restart the service:**
+```ini
+[Resolve]
+DNS=8.8.8.8 8.8.4.4
+FallbackDNS=1.1.1.1 1.0.0.1
+```
 
-   ```bash
-   sudo systemctl restart systemd-resolved
-   ```
+Restart the service:
 
----
-
-## Dnsmasq Installation and Configuration
-
-1. **Install dnsmasq:**
-
-   ```bash
-   sudo apt install dnsmasq
-   ```
-
-2. **Edit `/etc/dnsmasq.conf`:**
-
-   ```bash
-   sudo nano /etc/dnsmasq.conf
-   ```
-
-   Insert the following configuration (adjust interface names, IP ranges, and domain as needed):
-
-   ```ini
-   # Listen only on LAN interface 
-   interface=enx00e0990026d3
-
-   # Prevent listening on other interfaces
-   bind-interfaces
-
-   # Set the domain name
-   domain=home.local
-
-   # Use Google DNS (you can change this)
-   server=8.8.8.8
-   server=8.8.4.4
-
-   # Enable DHCP server with a range of IP addresses and a lease time of 12 hours
-   dhcp-range=192.168.2.101,192.168.2.200,12h
-
-   # Set gateway (router) for DHCP clients
-   dhcp-option=3,192.168.2.1
-   dhcp-option=6,192.168.2.1
-
-   # Set subnet mask and broadcast address
-   dhcp-option=1,255.255.255.0
-   dhcp-option=28,192.168.2.255
-
-   # Custom DHCP option (if needed)
-   dhcp-option=lan,114,http://nel.wifi
-
-   # Redirect specific domain requests to the captive portal
-   address=/ariel.wifi/192.168.2.1
-   address=/connectivitycheck.gstatic.com/192.168.2.1
-   address=/connectivitycheck.android.com/192.168.2.1
-   address=/clients1.google.com/192.168.2.1
-   address=/clients3.google.com/192.168.2.1
-   address=/clients.4.google.com/192.168.2.1
-   address=/captive.apple.com/192.168.2.1
-   address=/msftconnecttest.com/192.168.2.1
-
-   # Enable logging
-   log-queries
-   log-dhcp
-   ```
+```bash
+sudo systemctl restart systemd-resolved
+```
 
 ---
 
-## Systemd Override for dnsmasq
+## 2. Install and Configure dnsmasq
 
-1. **Create the override directory and file:**
+### Install dnsmasq
 
-   ```bash
-   sudo mkdir -p /etc/systemd/system/dnsmasq.service.d
-   sudo nano /etc/systemd/system/dnsmasq.service.d/override.conf
-   ```
+```bash
+sudo apt install dnsmasq
+```
 
-2. **Add the following content:**
+### Configure dnsmasq
 
-   ```ini
-   [Unit]
-   After=network-online.target
-   Wants=network-online.target
-   ```
+Edit the configuration file:
 
-3. **Reload systemd and restart dnsmasq:**
+```bash
+sudo nano /etc/dnsmasq.conf
+```
 
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl restart dnsmasq
-   sudo systemctl enable dnsmasq
-   sudo systemctl status dnsmasq
-   ```
+Paste the following configuration (modify as needed):
+
+```ini
+# Listen only on LAN interface 
+interface=enx00e0990026d3
+
+# Prevent listening on other interfaces
+bind-interfaces
+
+# Set the domain name
+domain=home.local
+
+# Use Google DNS (you can change this)
+server=8.8.8.8
+server=8.8.4.4
+
+# Enable DHCP server
+dhcp-range=192.168.2.101,192.168.2.200,12h
+
+# Set gateway (router)
+dhcp-option=3,192.168.2.1
+dhcp-option=6,192.168.2.1
+
+# Set subnet mask
+dhcp-option=1,255.255.255.0
+
+# Set broadcast address
+dhcp-option=28,192.168.2.255
+
+dhcp-option=lan,114,http://nel.wifi
+
+# DNS redirection for captive portal and connectivity checks
+address=/ariel.wifi/192.168.2.1
+address=/connectivitycheck.gstatic.com/192.168.2.1
+address=/connectivitycheck.android.com/192.168.2.1
+address=/clients1.google.com/192.168.2.1
+address=/clients3.google.com/192.168.2.1
+address=/clients.4.google.com/192.168.2.1
+address=/captive.apple.com/192.168.2.1
+address=/msftconnecttest.com/192.168.2.1
+
+# Logging
+log-queries
+log-dhcp
+```
+
+### Ensure dnsmasq Starts After the Network Is Up
+
+Create an override file for the dnsmasq service:
+
+```bash
+sudo mkdir -p /etc/systemd/system/dnsmasq.service.d
+sudo nano /etc/systemd/system/dnsmasq.service.d/override.conf
+```
+
+Insert the following:
+
+```ini
+[Unit]
+After=network-online.target
+Wants=network-online.target
+```
+
+Reload systemd and restart dnsmasq:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart dnsmasq
+sudo systemctl enable dnsmasq
+sudo systemctl status dnsmasq
+```
 
 ---
 
-## Installing Required Packages
+## 3. Install Required Packages
 
-Update your package lists and install additional dependencies:
+Update and install essential packages:
 
 ```bash
 sudo apt update
@@ -154,216 +142,209 @@ sudo apt install -y iptables ipset build-essential python3 libatomic1 ntpdate ma
 
 ---
 
-## Installing Node.js with NVM
+## 4. Install Node.js via NVM
 
-1. **Install nvm:**
-
-   ```bash
-   curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-   source ~/.bashrc
-   ```
-
-2. **Install the LTS version of Node.js:**
-
-   ```bash
-   nvm install --lts
-   ```
-
----
-
-## Configuring iptables and rc.local
-
-1. **Edit `/etc/rc.local`:**
-
-   ```bash
-   sudo nano /etc/rc.local
-   ```
-
-2. **Paste the following content (adjust interface names and IP addresses as needed):**
-
-   ```bash
-   #!/bin/bash
-   # /etc/rc.local
-
-   # Create an ipset for allowed MAC addresses
-   ipset create allowed_macs hash:mac
-
-   # Allow whitelisted MACs: bypass captive portal redirection for these MAC addresses
-   iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set --match-set allowed_macs src -j ACCEPT
-
-   # Mark all other traffic on the LAN interface for redirection
-   iptables -t mangle -A PREROUTING -i enx00e0990026d3 -j MARK --set-mark 99
-
-   # Redirect HTTP (port 80) and HTTPS (port 443) traffic for marked packets to the captive portal on port 3000
-   iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 80 -j DNAT --to 192.168.2.1:80
-   iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 443 -j DNAT --to 192.168.2.1:80
-
-   # Block unauthorized forwarding for marked packets
-   iptables -A FORWARD -i enx00e0990026d3 -m mark --mark 99 -j DROP
-
-   # Masquerade outgoing traffic on the WAN interface (replace 'end0' with your actual WAN interface if different)
-   iptables -t nat -A POSTROUTING -o end0 -j MASQUERADE
-
-   # Synchronize system time
-   ntpdate -u time.nist.gov
-
-   # Enable IP forwarding
-   sysctl -w net.ipv4.ip_forward=1
-
-   # rc.local must exit with 0
-   exit 0
-   ```
-
-3. **Make the script executable:**
-
-   ```bash
-   sudo chmod +x /etc/rc.local
-   ```
-
-4. **Set up a cron job to run the script at reboot:**
-
-   ```bash
-   crontab -e
-   ```
-
-   Add the following line:
-
-   ```cron
-   @reboot /bin/bash /etc/rc.local
-   ```
-
----
-
-## Setting Up pm2
-
-Install pm2 globally to manage your Node.js application:
+Install Node.js by using the Node Version Manager:
 
 ```bash
-npm i -g pm2
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+source ~/.bashrc
+nvm install --lts
 ```
 
 ---
 
-## Nginx Reverse Proxy Setup
+## 5. Configure Network Rules and Captive Portal Redirection
 
-1. **Install nginx:**
+Create and configure `/etc/rc.local` to set up firewall rules and network settings:
 
-   ```bash
-   sudo apt install nginx -y
-   ```
+```bash
+sudo nano /etc/rc.local
+```
 
-2. **Create a new site configuration:**
+Paste the following script:
 
-   ```bash
-   sudo nano /etc/nginx/sites-available/nodeapp
-   ```
+```bash
+#!/bin/bash
+# /etc/rc.local
 
-3. **Insert the following configuration (modify `yourdomain.com` or use `_` to catch all requests):**
+# Create an ipset for allowed MAC addresses
+ipset create allowed_macs hash:mac
 
-   ```nginx
-   server {
-       listen 80;
-       server_name yourdomain.com;
+# Allow whitelisted MACs on the LAN interface
+iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set --match-set allowed_macs src -j ACCEPT
 
-       location / {
-           proxy_pass http://localhost:3000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_cache_bypass $http_upgrade;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-           proxy_set_header Host $host;
-       }
-   }
-   ```
+# Redirect all other HTTP/HTTPS traffic to the captive portal
+iptables -t mangle -A PREROUTING -i enx00e0990026d3 -j MARK --set-mark 99
+iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 80 -j DNAT --to 192.168.2.1:80
+iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 443 -j DNAT --to 192.168.2.1:80
 
-4. **Enable the configuration and remove the default site:**
+# Block unauthorized internet access for redirected traffic
+iptables -A FORWARD -i enx00e0990026d3 -m mark --mark 99 -j DROP
 
-   ```bash
-   sudo ln -s /etc/nginx/sites-available/nodeapp /etc/nginx/sites-enabled/
-   sudo rm /etc/nginx/sites-enabled/default
-   ```
+# Enable NAT for outgoing traffic (adjust "end0" to your external interface)
+iptables -t nat -A POSTROUTING -o end0 -j MASQUERADE
 
-5. **Test and restart nginx:**
+# Sync system time
+ntpdate -u time.nist.gov
 
-   ```bash
-   sudo nginx -t
-   sudo systemctl restart nginx
-   sudo systemctl enable nginx
-   ```
+# Enable IP forwarding
+sysctl -w net.ipv4.ip_forward=1
 
----
+# rc.local needs to exit with 0
+exit 0
+```
 
-## MySQL Database Setup
+Make the script executable:
 
-1. **Secure your MySQL installation:**
+```bash
+sudo chmod +x /etc/rc.local
+```
 
-   ```bash
-   sudo mysql_secure_installation
-   ```
+Ensure the script runs at reboot by adding it to the crontab:
 
-2. **Create a new database:**
+```bash
+crontab -e
+```
 
-   ```bash
-   sudo mysql -u root -p
-   ```
+Add the following line:
 
-   Then, in the MySQL prompt, run:
-
-   ```sql
-   CREATE DATABASE wifi;
-   exit;
-   ```
-
-3. **If you have an initialization file (`tables.sql`), load it:**
-
-   ```bash
-   mysql -u root -p wifi < tables.sql
-   ```
+```bash
+@reboot /bin/bash /etc/rc.local
+```
 
 ---
 
-## Cloning and Building the Project
+## 6. Install and Configure NGINX
 
-1. **Clone the repository:**
+### Install NGINX
 
-   ```bash
-   git clone https://github.com/nel003/wifi-vendo
-   cd wifi-vendo
-   ```
+```bash
+sudo apt install nginx -y
+```
 
-2. **Install dependencies and build the project:**
+### Configure NGINX as a Reverse Proxy
 
-   ```bash
-   npm i
-   npm run build
-   ```
+Create a new site configuration:
 
-3. **Start the application using pm2 (example command):**
+```bash
+sudo nano /etc/nginx/sites-available/nodeapp
+```
 
-   ```bash
-   pm2 start npm --name "wifi-vendo" -- run start
-   ```
+Insert the following configuration (modify `server_name` as necessary):
+
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com; # Change to your domain or use `_` for all requests
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+    }
+}
+```
+
+Enable the configuration and disable the default site:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/nodeapp /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default
+```
+
+Test and restart NGINX:
+
+```bash
+sudo nginx -t
+sudo systemctl restart nginx
+sudo systemctl enable nginx
+```
 
 ---
 
-## Additional Notes
+## 7. Set Up MySQL Database
 
-- **Interface Names & IPs:**  
-  Ensure that the network interface names (e.g., `enx00e0990026d3`, `end0`) and IP ranges in the configurations match your setup.
+### Secure MySQL Installation
 
-- **iptables Rules:**  
-  The rules in `/etc/rc.local` redirect HTTP/HTTPS traffic to the captive portal running on port 80. Modify these if your configuration differs.
+```bash
+sudo mysql_secure_installation
+```
 
-- **DNS Redirection:**  
-  The dnsmasq configuration redirects specific domains (e.g., captive portal check domains) to the local IP. Update these if necessary.
+### Create Database
 
-- **Service Order:**  
-  The systemd override for dnsmasq guarantees that it starts only after the network is online.
+Log in to MySQL as root:
 
-- **Persistence:**  
-  The `/etc/rc.local` script, invoked at reboot via cron, applies the necessary iptables/ipset rules. Ensure this script works as expected on boot.
+```bash
+sudo mysql -u root -p
+```
+
+Inside the MySQL prompt, run:
+
+```sql
+CREATE DATABASE wifi;
+exit;
+```
+
+### Import Table Schema
+
+Assuming you have a `tables.sql` file, import it:
+
+```bash
+mysql -u root -p wifi < tables.sql
+```
 
 ---
+
+## 8. Clone and Deploy the Node.js Application
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/nel003/wifi-vendo
+cd wifi-vendo
+```
+
+### Install Dependencies and Build
+
+```bash
+npm i
+npm run build
+```
+
+### Set Up PM2 for Process Management
+
+Install PM2 and TSX globally:
+
+```bash
+npm i -g pm2 tsx
+```
+
+Start the required processes:
+
+```bash
+pm2 start 'npx tsx init' --name init
+pm2 start 'npm run start' --name app
+```
+
+Save the PM2 process list and configure it to start on boot:
+
+```bash
+pm2 save
+pm2 startup
+```
+
+---
+
+## Conclusion
+
+Your captive portal and WiFi management system should now be up and running. Be sure to verify and adjust any interface names, IP addresses, and domain names to match your specific setup. For additional troubleshooting and customization, consult the documentation for each tool (dnsmasq, iptables, NGINX, PM2, etc.).
+
+Happy networking!
+```
