@@ -46,6 +46,7 @@ sudo systemctl restart systemd-resolved
 ### Install dnsmasq
 
 ```bash
+sudo apt update && sudo apt upgrade -y
 sudo apt install dnsmasq
 ```
 
