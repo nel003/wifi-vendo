@@ -39,7 +39,7 @@ import {
     SelectValue,
   } from "@/components/ui/select"
   import { cn } from "@/lib/utils"
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Search } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 
 export default function Page() {
@@ -47,10 +47,11 @@ export default function Page() {
     const { toast } = useToast();
     const [label, setLabel] = useState("");
     const [date, setDate] = useState<Date>();
+    const [filter, setFilter] = useState("");
     
     const init = useCallback(async () => {
         try {
-            const res = await axios.get('/api/admin/clients');
+            const res = await axios.get('/api/admin/clients?filter='+filter);
             setClients(res.data)
         } catch (error) {
             console.error(error)
@@ -59,7 +60,7 @@ export default function Page() {
                 description: 'Failed to fetch clients',
             })
         }    
-    }, [setClients, toast]);
+    }, [setClients, toast, filter]);
 
     useEffect(() => {
         init();
@@ -96,6 +97,10 @@ export default function Page() {
             <div className="w-full">
                 <div className="flex justify-between">
                     <h1 className="text-lg font-bold ml-[7px]">Clients</h1>
+                    <div className="relative">
+                        <Search className="absolute top-2 left-2 text-gray-500" size={20}/>
+                        <Input onChange={(e) => setFilter(e.target.value)} value={filter} placeholder="Find client" className="pl-8"/>
+                    </div>
                 </div>
                 <Table className="w-full">
                     <TableCaption>A list of cliens.</TableCaption>

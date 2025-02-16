@@ -7,7 +7,7 @@ export async function GET(req: Request) {
         const ip = req.headers.get('x-forwarded-for')?.replace("::ffff:", "").split(',').shift();
         const info = await getDeviceInfoFromIp(ip);
         // console.log(mac, ip);
-        if (!info || !ip) {
+        if (!info.mac || info.mac.trim() === "" || !ip) {
             return new Response('No MAC address found', { status: 404 });
         }
 

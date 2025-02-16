@@ -1,14 +1,16 @@
 import { checkRule } from "@/lib/checkRule";
 import db from "@/lib/database";
-import { flushRules } from "@/lib/flushRules";
 import handler from "@/app/api/_middleware";
 import { createJob, jobs } from "@/lib/jobs";
 import { execSync } from "child_process";
 import {  RowDataPacket } from "mysql2";
 
-export const GET = handler(async () => {
+export const GET = handler(async (req: Request | undefined) => {
     try {
-        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients;');
+        const url = new URL(req?.url || "");
+        const filter = url.searchParams.get("filter");
+
+        const [rows] = await db.query<RowDataPacket[]>(`SELECT * FROM clients WHERE mac LIKE '%${filter}%' OR device LIKE '%${filter}%' OR label LIKE '%${filter}%';`);
         console.log(rows);
         return Response.json(rows, { status: 200 });
     } catch (error) {

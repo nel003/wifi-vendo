@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const GET = handler(async () => {
     try {
-        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM vouchers;');
+        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM vouchers ORDER BY id DESC;');
         console.log(rows);
         return Response.json(rows, { status: 200 });
     } catch (error) {
