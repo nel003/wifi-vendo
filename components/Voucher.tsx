@@ -57,7 +57,7 @@ export default function Voucher() {
                 <AvatarFallback>AR</AvatarFallback>
             </Avatar>
             <h1 className="font-bold text-md">WiFi</h1>
-            <span className="block h-[1px] w-[75%] bg-foreground/30 mt-3 mb-2"></span>
+            <span className="hidden h-[1px] w-[75%] bg-foreground/30 mt-3 mb-2"></span>
             </div>
 
             <h1 className="text-center py-1 text-lg text-slate-800">Voucher</h1>
