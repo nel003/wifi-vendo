@@ -11,6 +11,10 @@ export async function GET(req: Request) {
             return new Response(null, {status: 302, headers: {Location: '/'}});
         }
         const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [info.mac]);
+        
+        if (rows.length < 1) {
+            return new Response(null, {status: 302, headers: {Location: '/'}});
+        }
 
         if (rows[0].expire_on != null && new Date(rows[0].expire_on) <= new Date(Date.now())) {
             return new Response(null, {status: 302, headers: {Location: '/'}});
