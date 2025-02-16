@@ -10,7 +10,7 @@ export async function GET(req: Request) {
         if (!info.mac || info.mac.trim() === "" || !ip) {
             return new Response(null, {status: 302, headers: {Location: '/'}});
         }
-        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [info.mac]);
+        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ? AND expire_on >= NOW();;', [info.mac]);
 
         if (rows.length < 1) {
             return new Response(null, {status: 302, headers: {Location: '/'}});

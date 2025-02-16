@@ -14,9 +14,9 @@ export async function GET(req: Request) {
         if (!info.mac || info.mac.trim() === "" || !ip) {
             return new Response('No MAC address found', { status: 404 });
         }
-        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [info.mac]);
+        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ? AND expire_on >= NOW();', [info.mac]);
 
-        if (rows[0].expire_on != null && new Date(rows[0].expire_on) <= new Date(Date.now())) {
+        if (rows.length < 1) {
             return Response.json({msg: "Not enough time!"}, { status: 500 });
         }
         
