@@ -199,7 +199,7 @@ export default function Home() {
 
     console.log(user);
     return (
-        <div className="grid place-items-center md:h-[100vh] h-[100dvh] bg-background">
+        <div className="grid place-items-center h-screen w-screen bg-background">
         <div>
             <div className="w-full flex items-center flex-col">
                 <div className="-mt-12 pb-12 flex gap-2">
