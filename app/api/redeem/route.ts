@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         const info = await getDeviceInfoFromIp(ip);
         // console.log(mac, ip);
         // console.log(voucher);
-        if (!info || !ip) {
+        if (!info.mac || info.mac.trim() === "" || !ip) {
             return new Response('No MAC address found', { status: 404 });
         }
 
