@@ -91,13 +91,6 @@ dhcp-option=lan,114,http://nel.wifi
 
 # DNS redirection for captive portal and connectivity checks
 address=/ariel.wifi/192.168.2.1
-address=/connectivitycheck.gstatic.com/192.168.2.1
-address=/connectivitycheck.android.com/192.168.2.1
-address=/clients1.google.com/192.168.2.1
-address=/clients3.google.com/192.168.2.1
-address=/clients.4.google.com/192.168.2.1
-address=/captive.apple.com/192.168.2.1
-address=/msftconnecttest.com/192.168.2.1
 
 # Logging
 log-queries
@@ -170,7 +163,7 @@ Paste the following script:
 # /etc/rc.local
 
 # Create an ipset for allowed MAC addresses
-ipset create allowed_macs hash:mac
+ipset create allowed_macs hash:mac timeout 4294967
 
 # Allow whitelisted MACs on the LAN interface
 iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set --match-set allowed_macs src -j ACCEPT
@@ -212,10 +205,10 @@ Add the following line:
 
 ```bash
 @reboot /bin/bash /etc/rc.local
+0 3 * * 1 /sbin/reboot
 ```
 
 ---
-
 ## 6. Install and Configure NGINX
 
 ### Install NGINX
