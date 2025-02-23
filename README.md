@@ -163,7 +163,7 @@ Paste the following script:
 # /etc/rc.local
 
 # Create an ipset for allowed MAC addresses
-ipset create allowed_macs hash:mac timeout 4294967
+ipset create allowed_macs hash:mac timeout 2147483
 
 # Allow whitelisted MACs on the LAN interface
 iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set --match-set allowed_macs src -j ACCEPT
