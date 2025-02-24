@@ -1,9 +1,8 @@
-import { checkRule } from "@/lib/checkRule";
 import db from "@/lib/database";
 import handler from "@/app/api/_middleware";
-import { createJob, jobs } from "@/lib/jobs";
 import { execSync } from "child_process";
 import {  RowDataPacket } from "mysql2";
+import moment from "moment";
 
 export const GET = handler(async (req: Request | undefined) => {
     try {
@@ -33,14 +32,10 @@ export const PUT = handler(async (req?: Request) => {
         if (process.env.PROD === 'true') {
             if (new Date(formattedDate) <= new Date(Date.now())) {
                 execSync(`ipset del allowed_macs ${mac}`);
-                jobs.get(mac || "")?.stop();
             } else {
-                if (!checkRule(mac || "")) {
-                    execSync(`ipset add allowed_macs ${mac}`);
-
-                    jobs.get(mac || "")?.stop();
-                    createJob(mac || "", formattedDate);
-                }
+                const expiryDate = moment(expiry, 'YYYY-MM-DD HH:mm:ss');
+                const timeout = expiryDate.diff(moment(), 'seconds')
+                execSync(`ipset add allowed_macs ${mac} timeout ${timeout} -exist`);
             }
         }
         

@@ -1,6 +1,7 @@
 import { getDeviceInfoFromIp } from "@/utils/getDeviceInfoFromIp";
 import db from "@/lib/database";
 import {  RowDataPacket } from "mysql2";
+import moment from "moment";
 
 export async function GET(req: Request) {
     try {
@@ -19,8 +20,10 @@ export async function GET(req: Request) {
         await db.execute(query, [ip, info.mac, info.deviceName]);
 
         const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [info.mac]);
-        console.log(rows);
-        return Response.json({msg: 'succes', ...rows[0]}, { status: 200 });
+        const expiryDate = moment(rows[0].expire_on);
+        const timeout = expiryDate.diff(moment(), 'seconds');
+        
+        return Response.json({msg: 'succes', ...rows[0], timeout}, { status: 200 });
     } catch (error) {
         console.log(error);
         return Response.json({msg: "Something went wrong!"}, { status: 200 });

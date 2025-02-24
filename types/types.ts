@@ -13,6 +13,7 @@ export interface User {
     mac: string;
     device: string;
     expire_on: Date | null;
+    timeout: number;
 }
 
 export interface ErrorResponse {

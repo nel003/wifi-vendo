@@ -1,25 +1,33 @@
-import { RowDataPacket } from "mysql2";
-import db from "./lib/database";
-import { checkRule } from "./lib/checkRule";
+import {config} from 'dotenv';
+config({path: ".env.local"})
+import mysql,{ RowDataPacket } from "mysql2/promise";
 import { execSync } from "child_process";
-import { createJob } from "./lib/jobs";
+import moment from "moment";
+
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
 
 async function init() {
     try {
-       const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE expire_on >= NOW();');
+       const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM clients WHERE expire_on >= NOW();');
        rows.forEach(async (row) => {
-        console.log(checkRule(row.mac))
-            if (!checkRule(row.mac)) {
-                execSync(`ipset add allowed_macs ${row.mac}`);
-                createJob(row.mac, row.expire_on);
-            }
+        const expiryDate = moment(rows[0].expire_on);
+        const timeout = expiryDate.diff(moment(), 'seconds');
+        console.log(timeout)
+        execSync(`ipset add allowed_macs ${row.mac} timeout ${timeout} -exist`);
        });
     console.log(rows);
     } catch (error) {
         console.error(error);
     }
 
-    setInterval(() => {}, 1 << 30);
 }
 
 init();

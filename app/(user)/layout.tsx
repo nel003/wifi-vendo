@@ -15,7 +15,13 @@ export default function Userlayout({
     useEffect(() => {
         async function req() {
             try {
-                const res = await axios.get("/api/login");
+                const res = await axios.get("/api/login", {
+                    headers: {
+                        "Cache-Control": "no-cache, no-store, must-revalidate",
+                        "Pragma": "no-cache",
+                        "Expires": "0"
+                    }
+                });
                 setUser(res.data);
             } catch (error) {
                 console.log(error)

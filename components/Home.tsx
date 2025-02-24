@@ -1,5 +1,6 @@
 "use client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import moment from "moment-timezone";
 import { userStore } from "@/store/user";
 import { ChartNoAxesGantt, EllipsisVertical, Fingerprint, LaptopMinimal, Router, Ticket, Unplug, X } from "lucide-react";
 import {
@@ -106,46 +107,34 @@ export default function Home() {
     }, [test, loadRates]);
 
     useEffect(() => {
-        const expireOn = user?.expire_on ? new Date(user.expire_on) : null;
-        console.log(user?.expire_on);
-        console.log("Counting down");
-
-        
+        let timeout = user?.timeout;
         function updateCountdown() {
-            if (!timerRef.current || !expireOn || !timerIn.current) {
-                return;
-                
-            }
+            if (!timerRef.current || !timeout) return;
+            const duration = moment.duration(timeout, 'seconds');
 
-            const timeDiff = expireOn.getTime() - Date.now();
-
-            if (timeDiff <= 0) {
-                timerRef.current.textContent = '00:00:00:00';
-                clearInterval(timerIn.current);
-                if (user) {
-                    setUser({...user, 'expire_on': null});
-                }
+            if (duration.asSeconds() <= 1) {
+                timerRef.current.textContent = "00:00:00:00";
+                clearInterval(timerIn.current!);
+                timeout = undefined;
+                if (user) setUser({ ...user, expire_on: null });
                 return;
             }
 
-            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+            timerRef.current.textContent = `${String(duration.days()).padStart(2, "0")}:`
+                + `${String(duration.hours()).padStart(2, "0")}:`
+                + `${String(duration.minutes()).padStart(2, "0")}:`
+                + `${String(duration.seconds()).padStart(2, "0")}`;
 
-            timerRef.current.textContent = 
-            `${String(days).padStart(2, '0')}:${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
+            timeout--;
+            }
 
-        timerIn.current  = setInterval(updateCountdown, 1000);
+        timerIn.current = setInterval(updateCountdown, 1000);
         updateCountdown();
 
         return () => {
-            if (timerIn.current) {
-                clearInterval(timerIn.current);
-            }
-        }
-
+            clearInterval(timerIn.current!)
+            timeout = undefined;
+        };
     }, [user, setUser]);
     
     async function redeem() {
@@ -210,7 +199,7 @@ export default function Home() {
                     <AvatarImage src="/favicon.ico" />
                     <AvatarFallback>AR</AvatarFallback>
                 </Avatar>
-                <h1 className="font-bold text-md">WiFi</h1>
+                <h1 className="font-bold text-md">WiFi dfsdf</h1>
                 <span className="hidden h-[1px] w-[75%] bg-foreground/30 mt-3 mb-2"></span>
                 </div>
 

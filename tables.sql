@@ -26,7 +26,7 @@ DROP TABLE IF EXISTS `clients`;
 CREATE TABLE `clients` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ip` varchar(50) DEFAULT NULL,
-  `mac` varchar(50) DEFAULT NULL,
+  `mac` varchar(50) NOT NULL,
   `device` varchar(50) DEFAULT NULL,
   `label` varchar(50) DEFAULT NULL,
   `attempts` int(11) DEFAULT 0,

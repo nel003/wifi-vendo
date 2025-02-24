@@ -1,10 +1,8 @@
 import { getDeviceInfoFromIp } from "@/utils/getDeviceInfoFromIp";
 import db from "@/lib/database";
 import {  RowDataPacket } from "mysql2";
-import { checkRule } from "@/lib/checkRule";
-import { flushRules } from "@/lib/flushRules";
 import { execSync } from "child_process";
-import { createJob, jobs } from "@/lib/jobs";
+import moment from "moment";
 
 export async function GET(req: Request) {
     try {
@@ -21,12 +19,9 @@ export async function GET(req: Request) {
         }
         
         if (process.env.PROD === 'true') {
-            if (!checkRule(info.mac || "")) {
-                execSync(`ipset add allowed_macs ${info.mac}`);
-                
-                jobs.get(info.mac || "")?.stop();
-                createJob(info.mac || "", rows[0].expire_on);
-            }
+            const expiryDate = moment(rows[0].expire_on);
+            const timeout = expiryDate.diff(moment(), 'seconds');
+            execSync(`ipset add allowed_macs ${info.mac} timeout ${timeout} -exist`);
         }
 
         return Response.json({msg: 'success', ...rows[0]}, { status: 200 });
