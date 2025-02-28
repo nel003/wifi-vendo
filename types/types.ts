@@ -46,6 +46,7 @@ export interface Clients {
   expire_on: string;
   device: string;
   label: string;
+  active: boolean;
 }
 
 export interface Dashboard {

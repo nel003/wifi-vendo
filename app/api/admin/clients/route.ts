@@ -3,15 +3,21 @@ import handler from "@/app/api/_middleware";
 import { execSync } from "child_process";
 import {  RowDataPacket } from "mysql2";
 import moment from "moment";
+import { activeLease } from "@/utils/activeLeases";
 
 export const GET = handler(async (req: Request | undefined) => {
     try {
+        const active = await activeLease();
         const url = new URL(req?.url || "");
         const filter = url.searchParams.get("filter");
 
         const [rows] = await db.query<RowDataPacket[]>(`SELECT * FROM clients WHERE mac LIKE '%${filter}%' OR device LIKE '%${filter}%' OR label LIKE '%${filter}%';`);
-        console.log(rows);
-        return Response.json(rows, { status: 200 });
+        
+        const newClients = rows.map(c => {
+            return {...c, active: active.includes(c.mac)};
+        });
+
+        return Response.json(newClients, { status: 200 });
     } catch (error) {
         console.log(error);
         return Response.json({msg: "Something went wrong!"}, { status: 500 });
@@ -35,7 +41,7 @@ export const PUT = handler(async (req?: Request) => {
             } else {
                 const expiryDate = moment(expiry, 'YYYY-MM-DD HH:mm:ss');
                 const timeout = expiryDate.diff(moment(), 'seconds')
-                execSync(`ipset add allowed_macs ${mac} timeout ${timeout} -exist`);
+                execSync(`ipset add allowed_macs ${mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`);
             }
         }
         

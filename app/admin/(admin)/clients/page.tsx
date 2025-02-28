@@ -61,7 +61,7 @@ export default function Page() {
             })
         }    
     }, [setClients, toast, filter]);
-
+    console.log(clients)
     useEffect(() => {
         init();
     }, [init]);
@@ -102,8 +102,13 @@ export default function Page() {
                         <Input onChange={(e) => setFilter(e.target.value)} value={filter} placeholder="Find client" className="pl-8"/>
                     </div>
                 </div>
+
+                <div className="flex pl-2 gap-2">
+                    <span className="block h-2 w-2 rounded-full bg-green-300 mt-[0.4rem]"></span>
+                    <h1 className="text-sm">Active</h1>
+                </div>
                 <Table className="w-full">
-                    <TableCaption>A list of cliens.</TableCaption>
+                    <TableCaption>A list of active clients.</TableCaption>
                     <TableHeader>
                         <TableRow>
                             <TableHead>ID</TableHead>
@@ -115,7 +120,106 @@ export default function Page() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {clients.map((client) => (
+                        {clients.filter(c => (c.active)).map((client) => (
+                            <TableRow key={client.id}>
+                                <TableCell className="w-8">{client.id}</TableCell>                         
+                                <TableCell>{client.mac}</TableCell>
+                                <TableCell className="whitespace-nowrap">{client.device}</TableCell>                         
+                                <TableCell className="whitespace-nowrap">{client.label}</TableCell>                         
+                                <TableCell className="text-right py-4 whitespace-nowrap">{new Date(client.expire_on).toLocaleString()}</TableCell>
+                                <TableCell className="flex justify-end gap-3 w-auto">
+                                    <Dialog onOpenChange={() => setLabel(client.label || "")}>
+                                        <DialogTrigger asChild>
+                                            <Button>Edit</Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="sm:max-w-[425px]">
+                                            <DialogHeader>
+                                            <DialogTitle>Edit client</DialogTitle>
+                                            <DialogDescription>
+                                                Make changes to your client here. Click save when you're done.
+                                            </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="grid gap-4 py-4">
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="name" className="text-right">
+                                                Label
+                                                </Label>
+                                                <Input
+                                                onChange={(e) => setLabel(e.target.value)}
+                                                value={label}
+                                                className="col-span-3"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="username" className="text-right">
+                                                Set expiry
+                                                </Label>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-[280px] justify-start text-left font-normal",
+                                                            !date && "text-muted-foreground"
+                                                        )}
+                                                        >
+                                                        <CalendarIcon />
+                                                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
+                                                        <Select
+                                                        onValueChange={(value) =>
+                                                            setDate(addDays(new Date(), parseInt(value)))
+                                                        }
+                                                        >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select" />
+                                                        </SelectTrigger>
+                                                        <SelectContent position="popper">
+                                                            <SelectItem value="1">1 Day</SelectItem>
+                                                            <SelectItem value="3">3 Days</SelectItem>
+                                                            <SelectItem value="7">7 Days</SelectItem>
+                                                        </SelectContent>
+                                                        </Select>
+                                                        <div className="rounded-md border">
+                                                        <Calendar mode="single" selected={date} onSelect={setDate} />
+                                                        </div>
+                                                    </PopoverContent>
+                                                    </Popover>
+                                            </div>
+                                            </div>
+                                            <DialogFooter>
+                                                <DialogClose asChild>
+                                                    <Button onClick={() => edit(client.id, client.mac)} type="submit">Save changes</Button>
+                                                </DialogClose>
+                                            </DialogFooter>
+                                        </DialogContent>
+                                        </Dialog>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+                
+                <div className="flex pl-2 gap-2">
+                    <span className="block h-2 w-2 rounded-full bg-gray-300 mt-[0.4rem]"></span>
+                    <h1 className="text-sm">Offline</h1>
+                </div>
+                <Table className="w-full">
+                    <TableCaption>A list of offline clients.</TableCaption>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>MAC</TableHead>
+                            <TableHead>Device</TableHead>
+                            <TableHead>Label</TableHead>
+                            <TableHead className="text-right">Expires</TableHead>
+                            <TableHead></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {clients.filter(c => (!c.active)).map((client) => (
                             <TableRow key={client.id}>
                                 <TableCell className="w-8">{client.id}</TableCell>                         
                                 <TableCell>{client.mac}</TableCell>

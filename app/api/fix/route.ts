@@ -21,7 +21,7 @@ export async function GET(req: Request) {
         if (process.env.PROD === 'true') {
             const expiryDate = moment(rows[0].expire_on);
             const timeout = expiryDate.diff(moment(), 'seconds');
-            execSync(`ipset add allowed_macs ${info.mac} timeout ${timeout} -exist`);
+            execSync(`ipset add allowed_macs ${info.mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`);
         }
 
         return Response.json({msg: 'success', ...rows[0]}, { status: 200 });

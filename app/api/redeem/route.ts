@@ -49,7 +49,7 @@ export async function POST(req: Request) {
         const expiryDate = moment(final[0].expire_on);
         const timeout = expiryDate.diff(moment(), 'seconds');
         
-        execSync(`ipset add allowed_macs ${info.mac} timeout ${timeout} -exist`);
+        execSync(`ipset add allowed_macs ${info.mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`);
 
         return Response.json({ msg: 'success', user: { ...final[0], timeout } }, { status: 200 });
     } catch (error) {
