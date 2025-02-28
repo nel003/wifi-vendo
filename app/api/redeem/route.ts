@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
         await conn.execute(`
             UPDATE clients
-            SET expire_on = IF(expire_on > NOW(), DATE_ADD(expire_on, INTERVAL ? MINUTE), DATE_ADD(NOW(), INTERVAL ? MINUTE))
+            SET paused = 0, can_pause = 0, expire_on = IF(expire_on > NOW(), DATE_ADD(expire_on, INTERVAL ? MINUTE), DATE_ADD(NOW(), INTERVAL ? MINUTE))
             WHERE mac = ?`, [vouch[0].time, vouch[0].time, info.mac]);
 
         await conn.execute('UPDATE vouchers SET used = 1 WHERE voucher = ?;', [voucher]);

@@ -30,13 +30,16 @@ CREATE TABLE `clients` (
   `device` varchar(50) DEFAULT NULL,
   `label` varchar(50) DEFAULT NULL,
   `attempts` int(11) DEFAULT 0,
+  `can_pause` int DEFAULT 0,
+  `pause_attempts` int(11) DEFAULT 0,
+  `paused` int DEFAULT 0,
   `last_attempt` date DEFAULT NULL,
+  `paused_on` datetime DEFAULT NULL,
   `expire_on` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `mac` (`mac`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
 
 DROP TABLE IF EXISTS `rates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

@@ -33,14 +33,15 @@ export const PUT = handler(async (req?: Request) => {
 
         const formattedDate = new Date(expiry).toLocaleDateString("en-CA", {year: "numeric", month: "2-digit", day: "2-digit"}) + " " + new Date().toLocaleTimeString("en-CA", {hour12: false});
 
-        await db.query<RowDataPacket[]>('UPDATE clients SET label = ?, expire_on = ? WHERE id = ?;', [label, formattedDate, id]);
+        await db.query<RowDataPacket[]>('UPDATE clients SET paused = 0, can_pause = 0, label = ?, expire_on = ? WHERE id = ?;', [label, formattedDate, id]);
 
         if (process.env.PROD === 'true') {
             if (new Date(formattedDate) <= new Date(Date.now())) {
                 execSync(`ipset del allowed_macs ${mac}`);
             } else {
-                const expiryDate = moment(expiry, 'YYYY-MM-DD HH:mm:ss');
-                const timeout = expiryDate.diff(moment(), 'seconds')
+                const [final] = await db.execute<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [mac]);
+                const expiryDate = moment(final[0].expire_on);
+                const timeout = expiryDate.diff(moment(), 'seconds');
                 execSync(`ipset add allowed_macs ${mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`);
             }
         }

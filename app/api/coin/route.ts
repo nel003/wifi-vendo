@@ -29,7 +29,7 @@ async function stop(server: import("ws").WebSocketServer, client: import("ws").W
   if (totalCoins > 0) {
     await db.execute(`
       UPDATE clients
-      SET expire_on = IF(expire_on > NOW(), DATE_ADD(expire_on, INTERVAL ? MINUTE), DATE_ADD(NOW(), INTERVAL ? MINUTE))
+      SET paused = 0, can_pause = 1, expire_on = IF(expire_on > NOW(), DATE_ADD(expire_on, INTERVAL ? MINUTE), DATE_ADD(NOW(), INTERVAL ? MINUTE))
       WHERE mac = ?`, [totalCoins * 1, totalCoins * 1, mac]);
   
     const [final] = await db.execute<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [mac]);

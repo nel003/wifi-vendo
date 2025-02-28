@@ -14,6 +14,7 @@ export interface User {
     device: string;
     expire_on: Date | null;
     timeout: number;
+    paused: boolean;
 }
 
 export interface ErrorResponse {

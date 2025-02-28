@@ -2,7 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import moment from "moment-timezone";
 import { userStore } from "@/store/user";
-import { ChartNoAxesGantt, Coins, EllipsisVertical, Fingerprint, LaptopMinimal, Pause, Router, Ticket, Unplug, Wifi, WifiHigh, X } from "lucide-react";
+import { ChartNoAxesGantt, Coins, EllipsisVertical, Fingerprint, LaptopMinimal, Pause, Play, Router, Ticket, Unplug, Wifi, WifiHigh, X } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -127,8 +127,9 @@ export default function Home() {
                 + `${String(duration.hours()).padStart(2, "0")}:`
                 + `${String(duration.minutes()).padStart(2, "0")}:`
                 + `${String(duration.seconds()).padStart(2, "0")}`;
-
-            timeout--;
+            if (!user?.paused) {
+                timeout--;
+            }
             }
 
         timerIn.current = setInterval(updateCountdown, 1000);
@@ -188,6 +189,26 @@ export default function Home() {
         }
     }
 
+    async function playPause() {
+        try {
+            const url = "/api/"+(user?.paused ? "play":"pause");
+            const res = await axios.get(url);
+            setUser(res.data.user);
+
+            toast({
+                title: "Sucess",
+                description: user?.paused ? "Time continued" : "Time paused"
+              })
+        } catch (error) {
+            console.log(error);
+            const err = error as ErrorResponse;
+            toast({
+                title: "Failed",
+                description: err?.response.data.msg || "",
+              })
+        }
+        
+    }
 
     console.log(user);
     return (
@@ -216,7 +237,7 @@ export default function Home() {
 
                 <div className="w-full flex justify-center mt-6 gap-2">
 
-                    <div className="p-3 bg-slate-50 rounded-full duration-150 transform hover:scale-125"><Pause size={16} className="text-slate-600"/></div>
+                    <div className="p-3 bg-slate-50 rounded-full duration-150 transform hover:scale-125" onClick={playPause}>{user?.paused ? <Play size={16} className="text-slate-600"/> : <Pause size={16} className="text-slate-600"/>}</div>
                     
                     <AlertDialog>
                         <AlertDialogTrigger>
