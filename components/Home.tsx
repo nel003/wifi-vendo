@@ -110,9 +110,12 @@ export default function Home() {
     }, [toast]);
 
     useEffect(() => {
-        test();
         loadRates();
     }, [test, loadRates]);
+
+    useEffect(() => {
+        test();
+    }, [user]);
 
     useEffect(() => {
         let timeout = user?.timeout;
@@ -204,10 +207,6 @@ export default function Home() {
                 title: "Sucess",
                 description: user?.paused ? "Time continued" : "Time paused"
               })
-            if(user?.paused){
-                test();
-            }
-            setStatus("paus");
         } catch (error) {
             console.log(error);
             const err = error as ErrorResponse;
