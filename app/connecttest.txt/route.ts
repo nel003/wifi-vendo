@@ -8,21 +8,21 @@ export async function GET(req: Request) {
         const info = await getDeviceInfoFromIp(ip);
         // console.log(mac, ip);
         if (!info.mac || info.mac.trim() === "" || !ip) {
-            return new Response(null, {status: 302, headers: {Location: '/'}});
+            return new Response(null, {status: 302, headers: {Location: process.env.MAIN_URL || ""}});
         }
         const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ? AND expire_on >= NOW();;', [info.mac]);
 
         if (rows.length < 1) {
-            return new Response(null, {status: 302, headers: {Location: '/'}});
+            return new Response(null, {status: 302, headers: {Location: process.env.MAIN_URL || ""}});
         }
 
         if (rows[0].expire_on != null && new Date(rows[0].expire_on) <= new Date(Date.now())) {
-            return new Response(null, {status: 302, headers: {Location: '/'}});
+            return new Response(null, {status: 302, headers: {Location: process.env.MAIN_URL || ""}});
         }
         
         return new Response(null, {status: 204})
     } catch (error) {
         console.log(error);
-        return new Response(null, {status: 302, headers: {Location: '/'}});
+        return new Response(null, {status: 302, headers: {Location: process.env.MAIN_URL || ""}});
     }
 }

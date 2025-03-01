@@ -199,6 +199,7 @@ export default function Home() {
                 title: "Sucess",
                 description: user?.paused ? "Time continued" : "Time paused"
               })
+            test();
         } catch (error) {
             console.log(error);
             const err = error as ErrorResponse;
@@ -236,9 +237,6 @@ export default function Home() {
                 </h1>
 
                 <div className="w-full flex justify-center mt-6 gap-2">
-
-                    <div className="p-3 bg-slate-50 rounded-full duration-150 transform hover:scale-125" onClick={playPause}>{user?.paused ? <Play size={16} className="text-slate-600"/> : <Pause size={16} className="text-slate-600"/>}</div>
-                    
                     <AlertDialog>
                         <AlertDialogTrigger>
                             <div className="p-3 bg-blue-50/60 rounded-full duration-150 transform hover:scale-125"><Ticket size={16} className="text-blue-600/60"/></div>
@@ -295,7 +293,7 @@ export default function Home() {
                             </div>
                         </DrawerContent>
                     </Drawer>
-
+                    <div className="p-3 bg-slate-50 rounded-full duration-150 transform hover:scale-125" onClick={playPause}>{user?.paused ? <Play size={16} className="text-slate-600"/> : <Pause size={16} className="text-slate-600"/>}</div>
                     <Drawer>
                         <DrawerTrigger>
                             <div className="p-3 bg-yellow-50 rounded-full duration-150 transform hover:scale-125"><ChartNoAxesGantt size={16} className="text-yellow-600"/></div>   

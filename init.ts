@@ -19,9 +19,11 @@ async function init() {
        const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM clients WHERE expire_on >= NOW();');
        rows.forEach(async (row) => {
         const expiryDate = moment(rows[0].expire_on);
-        const timeout = expiryDate.diff(moment(), 'seconds');
-        console.log(timeout >= 2147483 ? 2147483 : timeout)
-        execSync(`ipset add allowed_macs ${row.mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`);
+        if(!row.paused) {
+            const timeout = expiryDate.diff(moment(), 'seconds');
+            console.log(timeout >= 2147483 ? 2147483 : timeout)
+            execSync(`ipset add allowed_macs ${row.mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`);
+        }
        });
     console.log(rows);
     } catch (error) {

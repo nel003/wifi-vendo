@@ -1,4 +1,4 @@
 
 export async function GET(req: Request) {
-    return new Response(null, {status: 302, headers: {Location: '/'}});
+    return new Response(null, {status: 302, headers: {Location: process.env.MAIN_URL || ""}});
 }
