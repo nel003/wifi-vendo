@@ -89,9 +89,9 @@ export default function Home() {
         setStatus("test");
         try {
             await axios({
-                method: "GET",
-                url: "https://dns.google/resolve?name=google.com",
-                timeout: 5000
+               method: "GET",
+               url: `https://dns.google/resolve?name=google.com&_=${Date.now()}`,
+               timeout: 5000
             });
             setStatus("conn");
         } catch (error) {
