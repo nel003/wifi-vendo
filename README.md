@@ -176,6 +176,7 @@ ipset create allowed_macs hash:mac timeout 2147483
 iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set --match-set allowed_macs src -j ACCEPT
 
 # Block unauthorized internet access for redirected traffic
+iptables -t mangle -A PREROUTING -i enx00e0990026d3 -j MARK --set-mark 99
 iptables -A FORWARD -i enx00e0990026d3 -m mark --mark 99 -j DROP
 
 # Enable NAT for outgoing traffic (adjust "end0" to your external interface)
