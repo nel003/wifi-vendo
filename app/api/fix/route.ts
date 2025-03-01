@@ -15,7 +15,11 @@ export async function GET(req: Request) {
         const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ? AND expire_on >= NOW();', [info.mac]);
 
         if (rows.length < 1) {
-            return Response.json({msg: "Not enough time!"}, { status: 500 });
+            return Response.json({msg: "Not enough time!"}, { status: 400 });
+        }
+        
+        if (rows[0].paused) {
+            return Response.json({msg: "Unpause your time first!"}, { status: 400 });
         }
         
         if (process.env.PROD === 'true') {
