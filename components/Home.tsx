@@ -87,23 +87,19 @@ export default function Home() {
         }    
     }, [setRates, toast]);
     const test = useCallback(async () => {
+        if(user?.paused){
+            setStatus("paus");
+        }
         try {
-            if(user?.paused){
-                setStatus("paus");
-            } else {
-                setStatus("test");
-                await axios({
-                   method: "GET",
-                   url: `https://dns.google/resolve?name=google.com&_=${Date.now()}`,
-                   timeout: 5000
-                });
-                setStatus("conn");
-            }
+            setStatus("test");
+            await axios({
+                method: "GET",
+                url: `https://dns.google/resolve?name=google.com&_=${Date.now()}`,
+                timeout: 5000
+            });
+            setStatus("conn");
         } catch (error) {
             console.log(error)
-            if(user?.paused){
-                return;
-            }
             setStatus("dist");
             toast({
                 title: "No internet!",
@@ -207,7 +203,10 @@ export default function Home() {
                 title: "Sucess",
                 description: user?.paused ? "Time continued" : "Time paused"
               })
-            test();
+            if(user?.paused){
+                test();
+            }
+            setStatus("paus");
         } catch (error) {
             console.log(error);
             const err = error as ErrorResponse;
