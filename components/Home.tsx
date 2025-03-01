@@ -57,6 +57,7 @@ import InsertCoin from "./InsertCoin";
 export default function Home() {
 
     const stats: Record<string, {text: string, textcolor: string, bgcolor: string}> = {
+        "paus": {text: "Paused", textcolor: "text-yellow-300", bgcolor: "bg-yellow-300"},
         "test": {text: "Testing", textcolor: "text-yellow-300", bgcolor: "bg-yellow-300"},
         "dist": {text: "Disconnected", textcolor: "text-red-300", bgcolor: "bg-red-300"},
         "conn": {text: "Connected", textcolor: "text-green-300", bgcolor: "bg-green-300"},
@@ -88,12 +89,16 @@ export default function Home() {
     const test = useCallback(async () => {
         setStatus("test");
         try {
-            await axios({
-               method: "GET",
-               url: `https://dns.google/resolve?name=google.com&_=${Date.now()}`,
-               timeout: 5000
-            });
-            setStatus("conn");
+            if(user?.paused){
+                setStatus("paus");
+            } else {
+                await axios({
+                   method: "GET",
+                   url: `https://dns.google/resolve?name=google.com&_=${Date.now()}`,
+                   timeout: 5000
+                });
+                setStatus("conn");
+            }
         } catch (error) {
             console.log(error)
             setStatus("dist");
