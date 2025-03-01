@@ -16,6 +16,10 @@ export async function GET(req: Request) {
             return new Response(null, {status: 302, headers: {Location: process.env.MAIN_URL || ""}});
         }
 
+        if (rows[0].paused) {
+            return new Response(null, {status: 302, headers: {Location: process.env.MAIN_URL || ""}});
+        }
+        
         if (rows[0].expire_on != null && new Date(rows[0].expire_on) <= new Date(Date.now())) {
             return new Response(null, {status: 302, headers: {Location: process.env.MAIN_URL || ""}});
         }
