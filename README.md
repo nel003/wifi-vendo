@@ -91,6 +91,13 @@ dhcp-option=lan,114,http://nel.wifi
 
 # DNS redirection for captive portal and connectivity checks
 address=/ariel.wifi/192.168.2.1
+address=/connectivitycheck.gstatic.com/192.168.2.1
+address=/connectivitycheck.android.com/192.168.2.1
+address=/clients1.google.com/192.168.2.1
+address=/clients3.google.com/192.168.2.1
+address=/clients.4.google.com/192.168.2.1
+address=/captive.apple.com/192.168.2.1
+address=/msftconnecttest.com/192.168.2.1
 
 # Logging
 log-queries
@@ -168,11 +175,6 @@ ipset create allowed_macs hash:mac timeout 2147483
 # Allow whitelisted MACs on the LAN interface
 iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set --match-set allowed_macs src -j ACCEPT
 
-# Redirect all other HTTP/HTTPS traffic to the captive portal
-iptables -t mangle -A PREROUTING -i enx00e0990026d3 -j MARK --set-mark 99
-iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 80 -j DNAT --to 192.168.2.1:80
-iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 443 -j DNAT --to 192.168.2.1:80
-
 # Block unauthorized internet access for redirected traffic
 iptables -A FORWARD -i enx00e0990026d3 -m mark --mark 99 -j DROP
 
@@ -235,11 +237,15 @@ server {
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
+
+        # WebSocket support
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
+        proxy_set_header Connection "Upgrade";
         proxy_cache_bypass $http_upgrade;
+
+        # Forwarding client information
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Host $host;
     }
