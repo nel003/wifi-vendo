@@ -87,11 +87,11 @@ export default function Home() {
         }    
     }, [setRates, toast]);
     const test = useCallback(async () => {
-        setStatus("test");
         try {
             if(user?.paused){
                 setStatus("paus");
             } else {
+                setStatus("test");
                 await axios({
                    method: "GET",
                    url: `https://dns.google/resolve?name=google.com&_=${Date.now()}`,
@@ -101,6 +101,9 @@ export default function Home() {
             }
         } catch (error) {
             console.log(error)
+            if(user?.paused){
+                return;
+            }
             setStatus("dist");
             toast({
                 title: "No internet!",
