@@ -114,7 +114,11 @@ export default function Home() {
     }, [test, loadRates]);
 
     useEffect(() => {
-        test();
+        if(user?.paused){
+            setStatus("paus");
+        } else {
+            test();
+        }
     }, [user]);
 
     useEffect(() => {
