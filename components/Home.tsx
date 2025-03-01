@@ -87,10 +87,6 @@ export default function Home() {
         }    
     }, [setRates, toast]);
     const test = useCallback(async () => {
-        if(user?.paused){
-            setStatus("paus");
-            return;
-        }
         try {
             setStatus("test");
             await axios({
@@ -119,7 +115,7 @@ export default function Home() {
         } else {
             test();
         }
-    }, [user]);
+    }, [user, test]);
 
     useEffect(() => {
         let timeout = user?.timeout;
