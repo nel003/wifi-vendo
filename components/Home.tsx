@@ -89,6 +89,7 @@ export default function Home() {
     const test = useCallback(async () => {
         if(user?.paused){
             setStatus("paus");
+            return;
         }
         try {
             setStatus("test");
