@@ -56,7 +56,7 @@ export default function Login() {
     }
     
     return <>
-        <div className="grid place-items-center w-screen min-h-*">
+        <div className="grid place-items-center w-screen h-screen">
             <Card className="min-w-[280px] max-w-[420px] w-full">
                 <CardHeader>
                     <div className="w-full flex justify-center">
