@@ -127,7 +127,7 @@ export default function Home() {
                 timerRef.current.textContent = "00:00:00:00";
                 clearInterval(timerIn.current!);
                 timeout = undefined;
-                if (user) setUser({ ...user, expire_on: null });
+                if (user) setUser({ ...user, timeout: 0});
                 return;
             }
 
