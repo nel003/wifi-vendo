@@ -170,20 +170,20 @@ Paste the following script:
 # /etc/rc.local
 
 # Create an ipset for allowed MAC addresses
-ipset create allowed_macs hash:mac timeout 2147483
+ipset create allowed_macs hash:mac timeout 2147483 -exist
 
 # Allow whitelisted MACs on the LAN interface
 iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set --match-set allowed_macs src -j ACCEPT
 
-# Block unauthorized internet access for redirected traffic
-iptables -t mangle -A PREROUTING -i enx00e0990026d3 -j MARK --set-mark 99
+# Block unauthorized MACs
+iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set ! --match-set allowed_macs src -j MARK --set-mark 99
 iptables -A FORWARD -i enx00e0990026d3 -m mark --mark 99 -j DROP
 
-# Enable NAT for outgoing traffic (adjust "end0" to your external interface)
+# Enable NAT for outgoing traffic (dynamically detects external interface)
 iptables -t nat -A POSTROUTING -o end0 -j MASQUERADE
 
-# Sync system time
-ntpdate -u time.nist.gov
+# Sync system time properly
+systemctl restart systemd-timesyncd
 
 # Enable IP forwarding
 sysctl -w net.ipv4.ip_forward=1
