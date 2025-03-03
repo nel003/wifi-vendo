@@ -1,5 +1,5 @@
 const { execSync } = require("child_process");
-const interfaceName = "enx00e0990026d3";
+const interfaceName = "enp0s8";
 
 export async function activeLease(): Promise<string[]> {
     try {
@@ -7,9 +7,9 @@ export async function activeLease(): Promise<string[]> {
 
         return output
             .split("\n")
-            .filter((line: string) => line.includes("REACHABLE")) // Filter REACHABLE entries
-            .map((line: string) => line.split(" ")[2]) // Extract MAC addresses
-            .filter((mac: string) => mac); // Remove empty values
+            .filter((line: string) => line.includes("REACHABLE"))
+            .map((line: string) => line.split(" ")[2])
+            .filter((mac: string) => mac); 
     } catch (_) {
         return [];
     }

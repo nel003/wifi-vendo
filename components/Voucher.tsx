@@ -62,7 +62,7 @@ export default function Voucher() {
     }
 
     return (
-        <div className="grid place-items-center h-full w-screen bg-background">
+        <div className="grid place-items-center h-screen w-screen bg-background">
         <div>
             <div className="w-full flex items-center flex-col">
             {/* <Avatar>

@@ -220,7 +220,7 @@ export default function Home() {
 
     console.log(user);
     return (
-        <div className="grid place-items-center h-full w-screen bg-background">
+        <div className="grid place-items-center h-screen w-screen bg-background">
         <div>
             <div className="w-full flex items-center flex-col">
                 <div className="-mt-12 pb-12 flex gap-2">
@@ -327,7 +327,7 @@ export default function Home() {
                                                 {rates.map((rate) => (
                                                     <TableRow key={rate.id}>
                                                         <TableCell>{rate.price}</TableCell>
-                                                        <TableCell>{+rate.time / 60} Hours</TableCell>
+                                                        <TableCell>{rate.name}</TableCell>
                                                     </TableRow>
                                                 ))}
                                             </TableBody>

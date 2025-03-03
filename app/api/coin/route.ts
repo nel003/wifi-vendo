@@ -10,6 +10,7 @@ let seconds = 0;
 let totalCoins = 0;
 let isCSOpen = false;
 
+const secret = "secret";
 const max = 10;
 
 function reset() {
@@ -17,20 +18,53 @@ function reset() {
   clearInterval(timer!);
   timer = null;
   totalCoins = 0;
+  isCSOpen = false;
 }
 
 async function stop(server: import("ws").WebSocketServer, client: import("ws").WebSocket, mac: string) {
+  console.log("MAC: ", mac)
+  let timeTotal = 0;
+  
   server.clients.forEach(c => {
     if(c.protocol == "arduino") {
-      c.send(JSON.stringify({from: "server", secret: "secret", value: "closeslot"}));
+      c.send(JSON.stringify({from: "server", secret, value: "closeslot"}));
+    } else {
+      c.send(JSON.stringify({from: "coinslot", for: insertingMac, value: "isClose"})); 
     }
   }); 
 
-  if (totalCoins > 0) {
+  if (totalCoins > 0 && insertingMac?.trim() != "") {
+    const [rows] = await db.query<RowDataPacket[]>("SELECT * FROM rates ORDER BY price DESC");
+    const rates = rows as { price: number; time: number }[];
+
+    console.log(rates);
+
+    for (const r of rates) {
+      const price = Number(r.price);
+      
+      if (isNaN(price) || price <= 0) {
+        console.log(`Skipping invalid rate:`, r);
+        continue;
+      }
+    
+      if (totalCoins < price) {
+        continue;
+      }
+    
+      const ans = Math.floor(totalCoins / price); 
+      totalCoins %= price; 
+    
+      if (ans < 1) {
+        continue;
+      }
+    
+      timeTotal += ans * r.time;
+    }
+
     await db.execute(`
       UPDATE clients
       SET paused = 0, can_pause = 1, expire_on = IF(expire_on > NOW(), DATE_ADD(expire_on, INTERVAL ? MINUTE), DATE_ADD(NOW(), INTERVAL ? MINUTE))
-      WHERE mac = ?`, [totalCoins * 1, totalCoins * 1, mac]);
+      WHERE mac = ?`, [timeTotal * 1, timeTotal * 1, mac]);
   
     const [final] = await db.execute<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [mac]);
   
@@ -43,8 +77,6 @@ async function stop(server: import("ws").WebSocketServer, client: import("ws").W
   // client.send(JSON.stringify({from: "server", value: "closeslot"})); 
   reset();
 }
-
-const secret = "secret";
 
 export function GET() {
   const headers = new Headers();
@@ -134,7 +166,7 @@ export async function SOCKET(
     client.on("close", () => {
       console.log("A client disconnected");
 
-      if (info.mac || !ip && info.mac === insertingMac) {
+      if (info.mac || !ip && info.mac === insertingMac || client.protocol == "arduino") {
         stop(server, client, insertingMac || "");
       }
     });
