@@ -34,6 +34,12 @@ function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetSt
     }
 
     useEffect(() => {
+        if (!isOpen) {
+            window.location.reload();
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
         if (!socketRef.current) {
         socketRef.current = new WebSocket(`ws://${window.location.hostname}/api/coin`);
 
@@ -80,7 +86,6 @@ function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetSt
         }
 
         socketRef.current.onclose = () => {
-            relogin();
             console.log("WebSocket closed");
         }
         socketRef.current.onerror = (error) => console.error("WebSocket error:", error);
