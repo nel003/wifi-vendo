@@ -53,6 +53,7 @@ import {
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 import { Button } from "./ui/button";
 import InsertCoin from "./InsertCoin";
+import captiveCheck from "@/utils/captiveCheck";
   
 export default function Home() {
 
@@ -165,6 +166,7 @@ export default function Home() {
                 title: "Success",
                 description: "Voucher successfully redeemed.",
               });
+            captiveCheck();
         } catch (error) {
             console.log(error);
             const err = error as ErrorResponse;
@@ -186,6 +188,7 @@ export default function Home() {
                 title: "Done",
                 description: "Check the status",
               })
+            captiveCheck();
             test();
         } catch (error) {
             console.log(error);

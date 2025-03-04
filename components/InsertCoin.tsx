@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
+import captiveCheck from "@/utils/captiveCheck";
 
 function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetStateAction<boolean>>}) {
     const socketRef = useRef<WebSocket | null>(null);
@@ -35,7 +36,8 @@ function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetSt
 
     useEffect(() => {
         if (!isOpen) {
-            window.location.reload();
+            relogin();
+            captiveCheck();
         }
     }, [isOpen]);
 

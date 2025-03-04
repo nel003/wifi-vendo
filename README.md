@@ -183,7 +183,7 @@ iptables -A FORWARD -i enx00e0990026d3 -m mark --mark 99 -j DROP
 iptables -t nat -A POSTROUTING -o end0 -j MASQUERADE
 
 # Sync system time properly
-systemctl restart systemd-timesyncd
+ntpdate time.google.com
 
 # Enable IP forwarding
 sysctl -w net.ipv4.ip_forward=1
@@ -245,6 +245,7 @@ server {
         proxy_cache_bypass $http_upgrade;
 
         # Forwarding client information
+        proxy_set_header Referrer "$scheme://$host$request_uri";
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;

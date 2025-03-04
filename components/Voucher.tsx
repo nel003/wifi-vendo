@@ -26,6 +26,7 @@ import {
   } from "@/components/ui/drawer"
 import { Wifi, WifiHigh, X } from "lucide-react";
 import InsertCoin from "./InsertCoin";
+import captiveCheck from "@/utils/captiveCheck";
   
 
 export default function Voucher() {
@@ -49,6 +50,7 @@ export default function Voucher() {
                 title: "Success",
                 description: "Voucher successfully redeemed.",
               });
+              captiveCheck();
         } catch (error) {
             console.log(error);
             const err = error as ErrorResponse;

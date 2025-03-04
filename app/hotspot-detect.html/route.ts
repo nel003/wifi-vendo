@@ -3,6 +3,7 @@ import { getDeviceInfoFromIp } from "@/utils/getDeviceInfoFromIp";
 import { RowDataPacket } from "mysql2";
 
 export async function GET(req: Request) {
+    const ref = req.headers.get("Referrer");
     try {
         const ip = req.headers.get('x-forwarded-for')?.replace("::ffff:", "").split(',').shift();
         const info = await getDeviceInfoFromIp(ip);
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
             return new Response(`
             <html>
               <head>
-                <meta http-equiv="refresh" content="0; url=${process.env.MAIN_URL || ""}" />
+                <meta http-equiv="refresh" content="0; url=${process.env.MAIN_URL+`?from=${ref}` || ""}" />
               </head>
               <body>
                 <p>Redirecting...</p>
@@ -28,7 +29,7 @@ export async function GET(req: Request) {
             return new Response(`
             <html>
               <head>
-                <meta http-equiv="refresh" content="0; url=${process.env.MAIN_URL || ""}" />
+                <meta http-equiv="refresh" content="0; url=${process.env.MAIN_URL+`?from=${ref}` || ""}" />
               </head>
               <body>
                 <p>Redirecting...</p>
@@ -39,7 +40,7 @@ export async function GET(req: Request) {
             });
         }
 
-        return new Response("<html><body>Success</body></html>", {
+        return new Response("Success", {
             status: 200,
             headers: { "Content-Type": "text/html" }
         });
@@ -49,7 +50,7 @@ export async function GET(req: Request) {
         return new Response(`
         <html>
           <head>
-            <meta http-equiv="refresh" content="0; url=${process.env.MAIN_URL || ""}" />
+            <meta http-equiv="refresh" content="0; url=${process.env.MAIN_URL+`?from=${ref}` || ""}" />
           </head>
           <body>
             <p>Redirecting...</p>
