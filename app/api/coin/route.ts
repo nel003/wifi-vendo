@@ -11,7 +11,7 @@ let totalCoins = 0;
 let isCSOpen = false;
 
 const secret = "secret";
-const max = 10;
+const max = +(process.env.TIMEOUT || "0");
 
 function reset() {
   insertingMac = null;
