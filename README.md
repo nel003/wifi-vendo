@@ -188,6 +188,8 @@ ntpdate time.google.com
 # Enable IP forwarding
 sysctl -w net.ipv4.ip_forward=1
 
+# Restore user connection
+/bin/bash /path/to/your_script.sh &
 # rc.local needs to exit with 0
 exit 0
 ```
