@@ -5,6 +5,8 @@ async function captiveCheck() {
         const url = searchParams.get("from");
         if (url && url.trim() != "") {
             window.location.href = url;
+        } else {
+            window.location.reload(true);
         }
     } catch (_) {}
 }
