@@ -1,5 +1,5 @@
 const { execSync } = require("child_process");
-const interfaceName = "enp0s8";
+const interfaceName = process.env.INTERFACE || "";
 
 export async function activeLease(): Promise<string[]> {
     try {
