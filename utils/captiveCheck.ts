@@ -6,7 +6,7 @@ async function captiveCheck() {
         if (url && url.trim() != "") {
             window.location.href = url;
         } else {
-            window.location.reload(true);
+            window.location.reload();
         }
     } catch (_) {}
 }
