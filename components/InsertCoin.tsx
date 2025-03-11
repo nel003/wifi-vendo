@@ -100,14 +100,12 @@ function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetSt
     }, []);
 
     function send(t: string) {
-        if(t == "stop"){
-            if(started) {
-                socketRef.current?.send(JSON.stringify({"from": "user", "value": "stop"}));
-                setOpen(false);
-            } else {
-                socketRef.current?.send(JSON.stringify({"from": "user", "value": "start"}));
-            }
+        if(t == "stop" && started){
+            socketRef.current?.send(JSON.stringify({"from": "user", "value": "stop"}));
+            setOpen(false);
+            return;
         }
+        socketRef.current?.send(JSON.stringify({"from": "user", "value": "start"}));
     }
 
     return<div className="flex flex-col">
