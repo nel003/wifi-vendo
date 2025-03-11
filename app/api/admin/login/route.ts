@@ -5,7 +5,10 @@ import { RowDataPacket } from "mysql2";
 
 export async function GET() {
     try {
-        const hashed = await bcrypt.hashSync("admin@123", 10);
+        if (!process.env.GET_HASH) {
+            return Response.json({msg: "Oops!"}, {status: 400});
+        }
+        const hashed = await bcrypt.hashSync(process.env.GET_HASH, 10);
         return new Response(hashed);
     } catch (error) {
         console.log(error)

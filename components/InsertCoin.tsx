@@ -63,7 +63,7 @@ function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetSt
                     setStarted(true);
                     startSound.play();
                 }
-                if (data.value == "isClose") {
+                if (data.for == user?.mac && data.value == "isClose") {
                     setStarted(false);
                     doneSound.play();
                     setOpen(false);
@@ -101,9 +101,6 @@ function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetSt
 
     function send(t: string) {
         socketRef.current?.send(JSON.stringify({"from": "user", "value": t}));
-        if (t == "stop") {
-            setOpen(false);
-        }
     }
 
     return<div className="flex flex-col">
@@ -111,7 +108,7 @@ function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetSt
         <div className="grid place-items-center pt-8 pb-16">
             <h1 className="text-[6rem] font-bold">{coin}</h1>
         </div>
-        <Button className="py-6" onClick={() => send(started ? "stop":"start")}>{started ? "Stop":"Start"}</Button>
+        <Button className="py-6" onClick={() => send(started ? "stop":"start")}>{started ? "Done":"Start"}</Button>
     </div>
 }
 

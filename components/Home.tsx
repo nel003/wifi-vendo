@@ -237,7 +237,7 @@ export default function Home() {
                 <div className="bg-black aspect-square grid place-items-center rounded-full">
                     <WifiHigh className="text-white p-2 mb-1" size={40}/>
                 </div>
-                <h1 className="font-bold text-md">WiFi Vendo</h1>
+                <h1 className="font-bold text-md">{process.env.NEXT_PUBLIC_APP_NAME || "WiFi Vendo"}</h1>
                 <span className="hidden h-[1px] w-[75%] bg-foreground/30 mt-3 mb-2"></span>
                 </div>
 

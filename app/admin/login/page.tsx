@@ -65,7 +65,7 @@ export default function Login() {
                             <AvatarFallback>AR</AvatarFallback>
                         </Avatar>
                     </div>
-                    <CardTitle className="text-center">Ariel WiFi</CardTitle>
+                    <CardTitle className="text-center">{process.env.NEXT_PUBLIC_APP_NAME || "WiFi Vendo"}</CardTitle>
                     <CardDescription className="text-center">Login to proceed</CardDescription>
                 </CardHeader>
                 <CardContent>

@@ -67,8 +67,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <GalleryVerticalEnd className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Ariel WiFi</span>
-                  <span className="">v1.0.0</span>
+                  <span className="font-semibold">{process.env.NEXT_PUBLIC_APP_NAME || "WiFi Vendo"}</span>
+                  <span className="">v{process.env.NEXT_PUBLIC_VERSION || "0.1.0"}</span>
                 </div>
               </a>
             </SidebarMenuButton>
