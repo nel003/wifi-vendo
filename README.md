@@ -175,8 +175,12 @@ ipset create allowed_macs hash:mac timeout 2147483 -exist
 # Allow whitelisted MACs on the LAN interface
 iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set --match-set allowed_macs src -j ACCEPT
 
-# Block unauthorized MACs
+# Block unauthorized MACs and Redirect to captive portal
 iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set ! --match-set allowed_macs src -j MARK --set-mark 99
+
+iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 80 -j DNAT --to 192.168.2.1:80
+iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 443 -j DNAT --to 192.168.2.1:80
+
 iptables -A FORWARD -i enx00e0990026d3 -m mark --mark 99 -j DROP
 
 # Enable NAT for outgoing traffic (dynamically detects external interface)
@@ -339,8 +343,7 @@ npm i -g pm2 tsx
 Start the required processes:
 
 ```bash
-pm2 start 'npx tsx init' --name init
-pm2 start 'npm run start' --name app
+pm2 start 'bash init.sh & npm run start' --name app
 ```
 
 Save the PM2 process list and configure it to start on boot:
