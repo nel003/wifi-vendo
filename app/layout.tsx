@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WiFi Vendo",
+  title: process.env.NEXT_PUBLIC_APP_NAME || "WiFi Vendo",
   description: "",
 };
 

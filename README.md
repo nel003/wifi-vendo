@@ -15,30 +15,73 @@ This guide provides step-by-step instructions for setting up a captive portal us
 
 ---
 
-## 1. Configure DNS Resolver
+## 1. Set LAN IP to static
+### For Debian/Ubuntu-Based Systems (Armbian, etc.)
 
-### Edit systemd-resolved Configuration
-
-Open the resolver configuration file:
+Edit the network configuration file:
 
 ```bash
-sudo nano /etc/systemd/resolved.conf
+sudo nano /etc/network/interfaces
 ```
 
-Replace or add the following under the `[Resolve]` section:
-
+Modify or add the following lines (replace with your desired values):
 ```ini
-[Resolve]
-DNS=8.8.8.8 8.8.4.4
-FallbackDNS=1.1.1.1 1.0.0.1
-```
+# WAN (DHCP)
+auto end0
+iface end0 inet dhcp
 
-Restart the service:
+# LAN (Static IP)
+auto end0s8
+iface end0s8 inet static
+address 10.0.0.1  # Your static IP
+netmask 255.255.255.0  # Subnet mask
+gateway 10.0.0.1  # Default gateway (if needed)
+dns-nameservers 8.8.8.8 8.8.4.4  # Google DNS
+```
+Save and exit (CTRL+X, then Y, then Enter).
+
+Restart networking:
 
 ```bash
-sudo systemctl restart systemd-resolved
+sudo systemctl restart networking
 ```
 
+### For Netplan-Based Systems
+
+Edit the Netplan config:
+
+```bash
+sudo nano /etc/netplan/01-netcfg.yaml
+```
+
+Modify or add the following lines (replace with your desired values):
+```ini
+network:
+  ethernets:
+    end0:
+      dhcp4: true  # WAN (Uses DHCP)
+    end0s8:
+      dhcp4: no    # LAN (Static IP)
+      addresses: [10.0.0.1/24]
+      gateway4: 10.0.0.1
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]
+  version: 2
+```
+Save and exit (CTRL+X, then Y, then Enter).
+
+Save and apply the changes:
+
+```bash
+sudo netplan generate
+sudo netplan apply
+```
+
+### Verify Your Network Settings
+After making the changes, check:
+```bash
+ip a
+```
 ---
 
 ## 2. Install and Configure dnsmasq
@@ -168,23 +211,41 @@ Paste the following script:
 ```bash
 #!/bin/bash
 # /etc/rc.local
+WAN_IFACE="enp0s3"  # Change to match your LAN interface
+LAN_IFACE="enp0s8"  # Change to match your LAN interface
 
 # Create an ipset for allowed MAC addresses
 ipset create allowed_macs hash:mac timeout 2147483 -exist
 
 # Allow whitelisted MACs on the LAN interface
-iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set --match-set allowed_macs src -j ACCEPT
+iptables -t mangle -A PREROUTING -i $LAN_IFACE -m set --match-set allowed_macs src -j ACCEPT
 
 # Block unauthorized MACs and Redirect to captive portal
-iptables -t mangle -A PREROUTING -i enx00e0990026d3 -m set ! --match-set allowed_macs src -j MARK --set-mark 99
+iptables -t mangle -A PREROUTING -i $LAN_IFACE -m set ! --match-set allowed_macs src -j MARK --set-mark 99
 
-iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 80 -j DNAT --to 192.168.2.1:80
-iptables -t nat -A PREROUTING -i enx00e0990026d3 -m mark --mark 99 -p tcp --dport 443 -j DNAT --to 192.168.2.1:80
+iptables -t nat -A PREROUTING -i $LAN_IFACE -m mark --mark 99 -p tcp --dport 80 -j DNAT --to 192.168.2.1:80
+iptables -t nat -A PREROUTING -i $LAN_IFACE -m mark --mark 99 -p tcp --dport 443 -j DNAT --to 192.168.2.1:80
 
-iptables -A FORWARD -i enx00e0990026d3 -m mark --mark 99 -j DROP
+iptables -A FORWARD -i $LAN_IFACE -m mark --mark 99 -j DROP
+
+# **Traffic Control (tc) to Limit Per Client Bandwidth**
+# Clear any existing tc rules
+tc qdisc del dev $LAN_IFACE root 2>/dev/null
+
+# Create a root queue
+tc qdisc add dev $LAN_IFACE root handle 1: htb default 30
+
+# Create a parent class with the maximum bandwidth
+tc class add dev $LAN_IFACE parent 1: classid 1:1 htb rate 100mbit burst 15k
+
+# Create a child class to limit each client to 15Mbps
+tc class add dev $LAN_IFACE parent 1:1 classid 1:10 htb rate 15mbit ceil 15mbit burst 15k
+
+# Apply per-client filtering using `iptables` marks
+tc filter add dev $LAN_IFACE protocol ip parent 1:0 prio 1 u32 match ip src 0.0.0.0/0 flowid 1:10
 
 # Enable NAT for outgoing traffic (dynamically detects external interface)
-iptables -t nat -A POSTROUTING -o end0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o $WAN_IFACE -j MASQUERADE
 
 # Sync system time properly
 ntpdate time.google.com
@@ -192,8 +253,6 @@ ntpdate time.google.com
 # Enable IP forwarding
 sysctl -w net.ipv4.ip_forward=1
 
-# Restore user connection
-/bin/bash /path/to/your_script.sh &
 # rc.local needs to exit with 0
 exit 0
 ```
@@ -324,6 +383,34 @@ Import `tables.sql` file:
 ```bash
 mysql -u root -p wifi < tables.sql
 ```
+
+### Create or Modify environment variables
+
+Run:
+```bash
+nano .env.local
+```
+
+Modify or add the following lines (replace with your desired values):
+```bash
+PROD=false
+SECRET=<YOUR_SECRET>
+GET_HASH=<ADMIN_PASSWORD>
+
+INTERFACE=<LAN_INTERFACE>
+
+DB_HOST=<HOST>
+DB_USER=<USERNAME>
+DB_PASSWORD=<PASSWORD>
+DB_NAME=wifi
+
+MAIN_URL=<YOUR_DOMAIN> #e.g http://nel.wifi
+TIMEOUT=30
+
+NEXT_PUBLIC_APP_NAME=<NAME> #e.g NEL WIFI
+NEXT_PUBLIC_VERSION=2.0
+```
+Save and exit (CTRL+X, then Y, then Enter).
 
 ### Install Dependencies and Build
 
