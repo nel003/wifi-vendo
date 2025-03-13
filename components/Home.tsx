@@ -283,7 +283,7 @@ export default function Home() {
                         </AlertDialogContent>
                     </AlertDialog>
 
-                    <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                    {process.env.NEXT_PUBLIC_HAS_COINSLOT === "true" ? <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                         <DrawerTrigger asChild>
                             <div className="p-3 bg-green-50 rounded-full duration-150 transform hover:scale-125"><Coins size={16} className="text-green-600"/></div>
                         </DrawerTrigger>
@@ -302,7 +302,7 @@ export default function Home() {
                                 </DrawerFooter>
                             </div>
                         </DrawerContent>
-                    </Drawer>
+                    </Drawer> : ""}
                     <div className="p-3 bg-slate-50 rounded-full duration-150 transform hover:scale-125" onClick={playPause}>{user?.paused ? <Play size={16} className="text-slate-600"/> : <Pause size={16} className="text-slate-600"/>}</div>
                     <Drawer>
                         <DrawerTrigger>

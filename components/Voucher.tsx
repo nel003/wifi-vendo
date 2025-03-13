@@ -96,7 +96,7 @@ export default function Voucher() {
             <div className="w-full flex flex-col justify-center mt-4 gap-2">
                 <Button disabled={!(voucher.length >= 6)} onClick={(e) => redeem(e)} className="p-0 xs:p-6">REDEEM</Button>
 
-                <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                {process.env.NEXT_PUBLIC_HAS_COINSLOT === "true" ? <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                     <DrawerTrigger asChild>
                         <Button variant="ghost" className="p-0 xs:p-6">Insert Coin</Button>
                     </DrawerTrigger>
@@ -115,7 +115,7 @@ export default function Voucher() {
                             </DrawerFooter>
                         </div>
                     </DrawerContent>
-                </Drawer>
+                </Drawer> : ""}
             </div>
         </div>
         </div>
