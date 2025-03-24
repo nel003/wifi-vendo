@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     const redirectUrl = process.env.MAIN_URL ? `${process.env.MAIN_URL}?from=${encodeURIComponent(ref)}` : "/";
 
     try {
-        const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.replace("::ffff:", "") || null;
+        const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.replace("::ffff:", "") || undefined;
         const info = await getDeviceInfoFromIp(ip);
 
         if (!info?.mac || info.mac.trim() === "" || !ip) {
