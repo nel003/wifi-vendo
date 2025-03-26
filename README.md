@@ -63,7 +63,6 @@ network:
     end0s8:
       dhcp4: no    # LAN (Static IP)
       addresses: [10.0.0.1/24]
-      gateway4: 10.0.0.1
       nameservers:
         addresses: [8.8.8.8, 8.8.4.4]
   version: 2
@@ -252,6 +251,8 @@ ntpdate time.google.com
 
 # Enable IP forwarding
 sysctl -w net.ipv4.ip_forward=1
+
+pm2 restart app
 
 # rc.local needs to exit with 0
 exit 0
