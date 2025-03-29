@@ -91,7 +91,7 @@ export async function SOCKET(
 ) {
   const fIp = request.headers["x-forwarded-for"]?.toString() || request.socket.remoteAddress;
   const ip = fIp?.replace("::ffff:", "").split(',').shift();
-  const info = {mac: "AA:BB:CC:DD:11", deviceName: "dfdf"} //await getDeviceInfoFromIp(ip);
+  const info = await getDeviceInfoFromIp(ip);
   console.log("A client connected");
   console.log(ip)
 
@@ -191,7 +191,6 @@ export async function SOCKET(
     }
   });
 }
-
 
 
 // async function stop(server: import("ws").WebSocketServer, client: import("ws").WebSocket, mac: string) {
