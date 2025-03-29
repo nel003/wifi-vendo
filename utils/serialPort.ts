@@ -20,9 +20,7 @@ class SerialPortSingleton {
                 }
                 console.log('Serial port opened.');
 
-                // SerialPortSingleton.instance?.on('data', (data: Buffer) => {
-                //     console.log('Received:', data.toString());
-                // });
+                SerialPortSingleton.instance?.write(JSON.stringify({type: "status", value: "ok"})+"\n");
             });
         }
 

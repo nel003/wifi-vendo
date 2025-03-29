@@ -97,7 +97,6 @@ export async function SOCKET(
 
   // console.log(server.clients)
 
-  serialPort.write(JSON.stringify({type: "status", value: "ok"})+"\n");
   serialPort.on('data', (data: Buffer) => {
     const json = JSON.parse(data.toString());
 
