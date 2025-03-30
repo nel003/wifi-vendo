@@ -119,6 +119,7 @@ export async function SOCKET(
           c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));
         });
       }
+      console.log(json)
       console.log(totalCoins)
     })
   }
