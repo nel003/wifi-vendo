@@ -14,6 +14,8 @@ let isCSOpen = false;
 const secret = "secret";
 const max = +(process.env.TIMEOUT || "0");
 
+let serialInitialized = false;
+
 function reset() {
   insertingMac = null;
   clearInterval(timer!);
@@ -97,25 +99,29 @@ export async function SOCKET(
 
   // console.log(server.clients)
 
-  serialPort.on('data', (data: Buffer) => {
-    const json = JSON.parse(data.toString());
-
-    if (json.type == "res") {
-      server.clients.forEach(c => {
-        c.send(JSON.stringify({from: "coinslot", for: insertingMac, value: json.value == "open" ? "isOpen" : "isClose"})); 
-      }); 
-      isCSOpen = json.value == "open";
-    }
-
-    if (json.type == "coin") {
-      seconds = max * 1000;
-      totalCoins += +json.value;
-      server.clients.forEach(c => {
-        c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));
-      });
-    }
-
-  })
+  if (serialPort && !serialInitialized) {
+    serialInitialized = true;
+    
+    serialPort.on('data', (data: Buffer) => {
+      const json = JSON.parse(data.toString());
+  
+      if (json.type == "res") {
+        server.clients.forEach(c => {
+          c.send(JSON.stringify({from: "coinslot", for: insertingMac, value: json.value == "open" ? "isOpen" : "isClose"})); 
+        }); 
+        isCSOpen = json.value == "open";
+      }
+  
+      if (json.type == "coin") {
+        seconds = max * 1000;
+        totalCoins += +json.value;
+        server.clients.forEach(c => {
+          c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));
+        });
+      }
+      console.log(totalCoins)
+    })
+  }
 
   // serialPort.on('close', () => {
   //   client.send(JSON.stringify({from: "coinslot", for: insertingMac, value: "isClose"})); 
