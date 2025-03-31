@@ -106,8 +106,12 @@ export async function SOCKET(
       try {
         const json = JSON.parse(data.toString());
       
-      
         if (json.type == "init") {
+          serialPort.write(JSON.stringify({type: "status", value: "ok"})+"\n");
+        }
+
+        if (json.type == "notify") {
+          seconds = max * 1000;
           serialPort.write(JSON.stringify({type: "status", value: "ok"})+"\n");
         }
 
@@ -119,7 +123,6 @@ export async function SOCKET(
         }
     
         if (json.type == "coin") {
-          seconds = max * 1000;
           totalCoins += +json.value;
           server.clients.forEach(c => {
             c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));
