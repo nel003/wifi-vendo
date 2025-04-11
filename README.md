@@ -218,7 +218,7 @@ Paste the following script:
 # ---------------------------
 WAN_IFACE="end0"                # Replace with your WAN interface
 LAN_IFACE="enx00e04c6701a9"      # Replace with your LAN interface
-
+SPEED="5mbit"
 # ---------------------------
 # Clear and Initialize TC (Traffic Control)
 # ---------------------------
@@ -234,7 +234,7 @@ tc class add dev $LAN_IFACE parent 1: classid 1:1 htb rate 100mbit
 for ip_suffix in $(seq 20 245); do
   ip="10.0.0.${ip_suffix}"
 
-  sudo tc class add dev $LAN_IFACE parent 1:1 classid 1:$ip_suffix htb rate 15mbit ceil 15mbit
+  sudo tc class add dev $LAN_IFACE parent 1:1 classid 1:$ip_suffix htb rate $SPEED ceil $SPEED
   sudo tc qdisc add dev $LAN_IFACE parent 1:$ip_suffix handle $ip_suffix: sfq
   sudo tc filter add dev $LAN_IFACE protocol ip parent 1:0 prio 1 u32 match ip dst $ip flowid 1:$ip_suffix
 done
