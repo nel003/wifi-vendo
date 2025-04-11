@@ -199,82 +199,151 @@ nvm install --lts
 
 ## 5. Configure Network Rules and Captive Portal Redirection
 
-Create and configure `/etc/rc.local` to set up firewall rules and network settings:
+Create and configure `/usr/local/sbin/setup-network.sh` to set up firewall rules and network settings:
 
 ```bash
-sudo nano /etc/rc.local
+sudo nano /usr/local/sbin/setup-network.sh
 ```
 
 Paste the following script:
 
 ```bash
 #!/bin/bash
-# /etc/rc.local
-WAN_IFACE="enp0s3"  # Change to match your LAN interface
-LAN_IFACE="enp0s8"  # Change to match your LAN interface
+# setup-network.sh
+# Combined script for tc traffic shaping, ipset/iptables rules, and NAT configuration
 
-# Create an ipset for allowed MAC addresses
+# ---------------------------
+# Interface Variables
+# ---------------------------
+WAN_IFACE="end0"                # Replace with your WAN interface
+LAN_IFACE="enx00e04c6701a9"      # Replace with your LAN interface
+
+# ---------------------------
+# Clear and Initialize TC (Traffic Control)
+# ---------------------------
+echo "Clearing existing tc rules on $LAN_IFACE..."
+tc qdisc del dev "$LAN_IFACE" root 2>/dev/null || true
+
+echo "Setting up HTB root qdisc with r2q option..."
+tc qdisc add dev "$LAN_IFACE" root handle 1: htb default 99 r2q 10
+
+echo "Adding parent HTB class..."
+tc class add dev "$LAN_IFACE" parent 1: classid 1:1 htb rate 1000mbit
+
+# Note: We are not creating a default unauthorized class here.
+# Unauthorized devices (or devices not in the DHCP range) will fall back to the default (mark 99)
+# and will be intercepted by iptables (see below).
+
+# ---------------------------
+# Set up Per-IP TC Classes (DHCP range 10.0.0.20-10.0.0.245)
+# ---------------------------
+echo "Setting up per-IP tc classes for 10.0.0.20 to 10.0.0.245..."
+for ip_suffix in $(seq 20 245); do
+  ip="10.0.0.${ip_suffix}"
+  mark="$ip_suffix"                                   # Use the last octet as the mark (must be ≤ 255)
+  classid_hex=$(printf "%x" "$ip_suffix")             # Convert to hex for a valid tc class ID
+
+  # Create HTB class (with 15Mbps rate limit; adjust to 5mbit below if desired)
+  tc class add dev "$LAN_IFACE" parent 1:1 classid 1:"$classid_hex" htb rate 15mbit ceil 15mbit burst 15k
+
+  # Attach a fair qdisc to the class
+  tc qdisc add dev "$LAN_IFACE" parent 1:"$classid_hex" handle "${ip_suffix}:" sfq perturb 10
+
+  # Mark packets from this specific IP via iptables (see below for details)
+  iptables -t mangle -A PREROUTING -i "$LAN_IFACE" -s "$ip" -j MARK --set-mark "$mark"
+
+  # Link the mark to the corresponding tc class via filter
+  tc filter add dev "$LAN_IFACE" parent 1: protocol ip handle "$mark" fw flowid 1:"$classid_hex"
+done
+
+# ---------------------------
+# Setup ipset for Allowed MAC Addresses
+# ---------------------------
+echo "Creating ipset for allowed MAC addresses..."
 ipset create allowed_macs hash:mac timeout 2147483 -exist
 
-# Allow whitelisted MACs on the LAN interface
-iptables -t mangle -A PREROUTING -i $LAN_IFACE -m set --match-set allowed_macs src -j ACCEPT
+# ---------------------------
+# Setup iptables Rules
+# ---------------------------
 
-# Block unauthorized MACs and Redirect to captive portal
-iptables -t mangle -A PREROUTING -i $LAN_IFACE -m set ! --match-set allowed_macs src -j MARK --set-mark 99
+# Flush previous mangle table rules (optional, to avoid duplicates)
+iptables -t mangle -F
 
-iptables -t nat -A PREROUTING -i $LAN_IFACE -m mark --mark 99 -p tcp --dport 80 -j DNAT --to 192.168.2.1:80
-iptables -t nat -A PREROUTING -i $LAN_IFACE -m mark --mark 99 -p tcp --dport 443 -j DNAT --to 192.168.2.1:80
+# 1. Accept traffic from allowed (whitelisted) MAC addresses
+iptables -t mangle -A PREROUTING -i "$LAN_IFACE" -m set --match-set allowed_macs src -j ACCEPT
 
-iptables -A FORWARD -i $LAN_IFACE -m mark --mark 99 -j DROP
+# 2. For non-whitelisted MACs, mark their packets as 99 (unauthorized)
+iptables -t mangle -A PREROUTING -i "$LAN_IFACE" -m set ! --match-set allowed_macs src -j MARK --set-mark 99
 
-# **Traffic Control (tc) to Limit Per Client Bandwidth**
-# Clear any existing tc rules
-tc qdisc del dev $LAN_IFACE root 2>/dev/null
+# 3. (Optional) Redirect unauthorized web traffic (mark 99) to captive portal.
+# Replace 10.0.0.1 with your captive portal IP.
+iptables -t nat -A PREROUTING -i "$LAN_IFACE" -m mark --mark 99 -p tcp --dport 80 -j DNAT --to-destination 10.0.0.1
+iptables -t nat -A PREROUTING -i "$LAN_IFACE" -m mark --mark 99 -p tcp --dport 443 -j DNAT --to-destination 10.0.0.1
 
-# Create a root queue
-tc qdisc add dev $LAN_IFACE root handle 1: htb default 30
+# 4. Drop forwarded traffic from unauthorized devices (if desired)
+iptables -A FORWARD -i "$LAN_IFACE" -m mark --mark 99 -j DROP
 
-# Create a parent class with the maximum bandwidth
-tc class add dev $LAN_IFACE parent 1: classid 1:1 htb rate 100mbit burst 15k
+# ---------------------------
+# NAT and Additional Settings
+# ---------------------------
+echo "Setting up NAT and additional settings..."
+iptables -t nat -A POSTROUTING -o "$WAN_IFACE" -j MASQUERADE
 
-# Create a child class to limit each client to 15Mbps
-tc class add dev $LAN_IFACE parent 1:1 classid 1:10 htb rate 15mbit ceil 15mbit burst 15k
-
-# Apply per-client filtering using `iptables` marks
-tc filter add dev $LAN_IFACE protocol ip parent 1:0 prio 1 u32 match ip src 0.0.0.0/0 flowid 1:10
-
-# Enable NAT for outgoing traffic (dynamically detects external interface)
-iptables -t nat -A POSTROUTING -o $WAN_IFACE -j MASQUERADE
-
-# Sync system time properly
-ntpdate time.google.com
+# Disable hotspot sharing by setting TTL to 1 on LAN outbound traffic
+iptables -t mangle -A POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1
 
 # Enable IP forwarding
 sysctl -w net.ipv4.ip_forward=1
 
+# Sync system time (optional, adjust if necessary)
+ntpdate time.google.com
+
+# (Optional) Restart any required applications (e.g., captive portal server or pm2-managed app)
 pm2 restart app
 
-# rc.local needs to exit with 0
+echo "Network shaping and firewall configuration applied successfully."
+
 exit 0
 ```
 
 Make the script executable:
 
 ```bash
-sudo chmod +x /etc/rc.local
+sudo chmod +x /usr/local/sbin/setup-network.sh
 ```
 
-Ensure the script runs at reboot by adding it to the crontab:
-
+###Create the systemd Service File:
+Create a file called /etc/systemd/system/network-shaping.service
 ```bash
-crontab -e
+nano /etc/systemd/system/network-shaping.service
 ```
 
-Add the following line:
+Paste the following line:
 
 ```bash
-@reboot /bin/bash /etc/rc.local
-0 3 * * 1 /sbin/reboot
+[Unit]
+Description=Network Shaping, TC, and iptables Setup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/setup-network.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and Start the Service
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable network-shaping.service
+sudo systemctl start network-shaping.service
+```
+
+You can check its status with:
+```bash
+sudo systemctl status network-shaping.service
 ```
 
 ---
