@@ -222,39 +222,21 @@ LAN_IFACE="enx00e04c6701a9"      # Replace with your LAN interface
 # ---------------------------
 # Clear and Initialize TC (Traffic Control)
 # ---------------------------
-echo "Clearing existing tc rules on $LAN_IFACE..."
-tc qdisc del dev "$LAN_IFACE" root 2>/dev/null || true
+# Clear existing rules
+tc qdisc del dev $LAN_IFACE root 2>/dev/null
+tc qdisc del dev $WAN_IFACE ingress 2>/dev/null
 
-echo "Setting up HTB root qdisc with r2q option..."
-tc qdisc add dev "$LAN_IFACE" root handle 1: htb default 99 r2q 10
+#root
+tc qdisc add dev $LAN_IFACE root handle 1: htb default 30
+tc class add dev $LAN_IFACE parent 1: classid 1:1 htb rate 100mbit
 
-echo "Adding parent HTB class..."
-tc class add dev "$LAN_IFACE" parent 1: classid 1:1 htb rate 1000mbit
-
-# Note: We are not creating a default unauthorized class here.
-# Unauthorized devices (or devices not in the DHCP range) will fall back to the default (mark 99)
-# and will be intercepted by iptables (see below).
-
-# ---------------------------
-# Set up Per-IP TC Classes (DHCP range 10.0.0.20-10.0.0.245)
-# ---------------------------
-echo "Setting up per-IP tc classes for 10.0.0.20 to 10.0.0.245..."
+# Loop through DHCP IPs (10.0.0.20 - 10.0.0.250)
 for ip_suffix in $(seq 20 245); do
   ip="10.0.0.${ip_suffix}"
-  mark="$ip_suffix"                                   # Use the last octet as the mark (must be ≤ 255)
-  classid_hex=$(printf "%x" "$ip_suffix")             # Convert to hex for a valid tc class ID
 
-  # Create HTB class (with 15Mbps rate limit; adjust to 5mbit below if desired)
-  tc class add dev "$LAN_IFACE" parent 1:1 classid 1:"$classid_hex" htb rate 15mbit ceil 15mbit burst 15k
-
-  # Attach a fair qdisc to the class
-  tc qdisc add dev "$LAN_IFACE" parent 1:"$classid_hex" handle "${ip_suffix}:" sfq perturb 10
-
-  # Mark packets from this specific IP via iptables (see below for details)
-  iptables -t mangle -A PREROUTING -i "$LAN_IFACE" -s "$ip" -j MARK --set-mark "$mark"
-
-  # Link the mark to the corresponding tc class via filter
-  tc filter add dev "$LAN_IFACE" parent 1: protocol ip handle "$mark" fw flowid 1:"$classid_hex"
+  sudo tc class add dev $LAN_IFACE parent 1:1 classid 1:$ip_suffix htb rate 15mbit ceil 15mbit
+  sudo tc qdisc add dev $LAN_IFACE parent 1:$ip_suffix handle $ip_suffix: sfq
+  sudo tc filter add dev $LAN_IFACE protocol ip parent 1:0 prio 1 u32 match ip dst $ip flowid 1:$ip_suffix
 done
 
 # ---------------------------
