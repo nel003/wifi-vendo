@@ -117,7 +117,8 @@ server=8.8.8.8
 server=8.8.4.4
 
 # Enable DHCP server
-dhcp-range=192.168.2.101,192.168.2.200,12h
+dhcp-range=10.0.0.20,10.0.0.98,12h
+dhcp-range=10.0.0.100,10.0.0.245,12h
 
 # Set gateway (router)
 dhcp-option=3,192.168.2.1
