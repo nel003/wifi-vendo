@@ -120,6 +120,9 @@ export async function SOCKET(
         if (json.type == "notify") {
           isPending = true;
           seconds = max * 1000;
+          server.clients.forEach(c => {
+              c.send(JSON.stringify({from: "notify", for: insertingMac, value: "ok"}));
+          });
           serialPort.write(JSON.stringify({type: "status", value: "ok"})+"\n");
         }
 
@@ -133,9 +136,11 @@ export async function SOCKET(
         if (json.type == "coin") {
           isPending = false;
           totalCoins += +json.value;
-          server.clients.forEach(c => {
-            c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));
-          });
+          setTimeout(() => {
+              server.clients.forEach(c => {
+                  c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));
+              });
+          }, 700);
         }
         console.log(json)
         console.log(totalCoins)
