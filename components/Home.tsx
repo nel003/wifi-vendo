@@ -73,6 +73,7 @@ export default function Home() {
     const [status, setStatus] = useState("test");
     const [rates, setRates] = useState<Rate[] | []>([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [waitingForCoin, setWaitingForCoin] = useState(false);
     
 
     const loadRates = useCallback(async () => {
@@ -283,7 +284,13 @@ export default function Home() {
                         </AlertDialogContent>
                     </AlertDialog>
 
-                    {process.env.NEXT_PUBLIC_HAS_COINSLOT === "true" ? <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                    {process.env.NEXT_PUBLIC_HAS_COINSLOT === "true" ? <Drawer open={isDrawerOpen} onOpenChange={(v) => {
+                            if (waitingForCoin) {
+                                setIsDrawerOpen(true);
+                                return;
+                            }
+                            setIsDrawerOpen(v)
+                        }}>
                         <DrawerTrigger asChild>
                             <div className="p-3 bg-green-50 rounded-full duration-150 transform hover:scale-125"><Coins size={16} className="text-green-600"/></div>
                         </DrawerTrigger>
@@ -297,7 +304,7 @@ export default function Home() {
                                 </DrawerHeader>
                                 <DrawerFooter>
                                     <div className="w-full">
-                                        <InsertCoin isOpen={isDrawerOpen} setOpen={setIsDrawerOpen}/>
+                                        <InsertCoin isOpen={isDrawerOpen} setOpen={setIsDrawerOpen} waitingForCoin={waitingForCoin} setWaitingForCoin={setWaitingForCoin}/>
                                     </div>
                                 </DrawerFooter>
                             </div>

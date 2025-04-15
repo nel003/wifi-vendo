@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 import captiveCheck from "@/utils/captiveCheck";
 
-function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetStateAction<boolean>>}) {
+function InsertCoin({isOpen, setOpen, waitingForCoin, setWaitingForCoin}: {isOpen: boolean, setOpen: Dispatch<SetStateAction<boolean>>, waitingForCoin: boolean, setWaitingForCoin: Dispatch<SetStateAction<boolean>>,}) {
     const socketRef = useRef<WebSocket | null>(null);
     const [started, setStarted] = useState(false);
     const user = userStore(u => u.User);
@@ -74,13 +74,15 @@ function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetSt
                 if (data.for == user?.mac) {
                     setCoin(+data.value)
                     coinSound.play();
+                    setWaitingForCoin(false);
                 }
             }
 
-            if(data.from == "timer") {
-                if (data.for == user?.mac) {
-                    setTimeleft(+data.timeleft)
+            if(data.from == "timer" && data.for == user?.mac) {
+                if(+data.timeleft > timeleft) {
+                    setWaitingForCoin(true);
                 }
+                setTimeleft(+data.timeleft)
             }
 
 
@@ -113,7 +115,7 @@ function InsertCoin({isOpen, setOpen}: {isOpen: boolean, setOpen: Dispatch<SetSt
         <div className="grid place-items-center pt-8 pb-16">
             <h1 className="text-[6rem] font-bold">{coin}</h1>
         </div>
-        <Button className="py-6" onClick={() => send(started ? "stop":"start")}>{started ? "Done":"Start"}</Button>
+        <Button disabled={waitingForCoin} className="py-6" onClick={() => send(started ? "stop":"start")}>{waitingForCoin ? "Identifying Coin..." : started ? "Done":"Start"}</Button>
     </div>
 }
 

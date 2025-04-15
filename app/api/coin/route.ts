@@ -10,6 +10,7 @@ let timer: NodeJS.Timeout | null = null;
 let seconds = 0;
 let totalCoins = 0;
 let isCSOpen = false;
+let isPending = false;
 
 const secret = "secret";
 const max = +(process.env.TIMEOUT || "0");
@@ -25,6 +26,12 @@ function reset() {
 }
 
 async function stop(server: import("ws").WebSocketServer, mac: string) {
+  if (isPending) {
+    setTimeout(() => {
+      stop(server, insertingMac || "");
+    }, seconds + 500);
+    return;
+  }
   console.log("MAC: ", mac)
   let timeTotal = 0;
   
@@ -111,6 +118,7 @@ export async function SOCKET(
         }
 
         if (json.type == "notify") {
+          isPending = true;
           seconds = max * 1000;
           serialPort.write(JSON.stringify({type: "status", value: "ok"})+"\n");
         }
@@ -123,6 +131,7 @@ export async function SOCKET(
         }
     
         if (json.type == "coin") {
+          isPending = false;
           totalCoins += +json.value;
           server.clients.forEach(c => {
             c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));

@@ -34,6 +34,7 @@ export default function Voucher() {
     const [voucher, setVoucher] = useState(""); 
     const { toast } = useToast();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [waitingForCoin, setWaitingForCoin] = useState(false);
 
     async function redeem(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         const target = e.target as HTMLButtonElement;
@@ -96,7 +97,13 @@ export default function Voucher() {
             <div className="w-full flex flex-col justify-center mt-4 gap-2">
                 <Button disabled={!(voucher.length >= 6)} onClick={(e) => redeem(e)} className="p-0 xs:p-6">REDEEM</Button>
 
-                {process.env.NEXT_PUBLIC_HAS_COINSLOT === "true" ? <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                {process.env.NEXT_PUBLIC_HAS_COINSLOT === "true" ? <Drawer open={isDrawerOpen} onOpenChange={(v) => {
+                    if (waitingForCoin) {
+                        setIsDrawerOpen(true);
+                        return;
+                    }
+                    setIsDrawerOpen(v)
+                }}>
                     <DrawerTrigger asChild>
                         <Button variant="ghost" className="p-0 xs:p-6">Insert Coin</Button>
                     </DrawerTrigger>
@@ -110,7 +117,7 @@ export default function Voucher() {
                             </DrawerHeader>
                             <DrawerFooter>
                                 <div className="w-full">
-                                    <InsertCoin isOpen={isDrawerOpen} setOpen={setIsDrawerOpen}/>
+                                    <InsertCoin isOpen={isDrawerOpen} setOpen={setIsDrawerOpen} waitingForCoin={waitingForCoin} setWaitingForCoin={setWaitingForCoin}/>
                                 </div>
                             </DrawerFooter>
                         </div>
