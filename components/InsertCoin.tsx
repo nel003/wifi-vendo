@@ -78,10 +78,11 @@ function InsertCoin({isOpen, setOpen, waitingForCoin, setWaitingForCoin}: {isOpe
                 }
             }
 
+            if(data.from == "notify" && data.for == user?.mac) {
+                setWaitingForCoin(true);
+            }
+
             if(data.from == "timer" && data.for == user?.mac) {
-                if(+data.timeleft > timeleft) {
-                    setWaitingForCoin(true);
-                }
                 setTimeleft(+data.timeleft)
             }
 
