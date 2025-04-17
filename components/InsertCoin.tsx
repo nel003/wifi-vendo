@@ -64,9 +64,9 @@ function InsertCoin({isOpen, setOpen, waitingForCoin, setWaitingForCoin}: {isOpe
                     startSound.play();
                 }
                 if (data.for == user?.mac && data.value == "isClose") {
-                    //setStarted(false);
+                    setStarted(false);
                     doneSound.play();
-                    //setOpen(false);
+                    setOpen(false);
                 }
             }
 
