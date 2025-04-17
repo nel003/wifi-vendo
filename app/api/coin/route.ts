@@ -188,7 +188,7 @@ export async function SOCKET(
 
       if(data.value == "stop") {
         console.log(insertingMac, info.mac);
-        console.log(time != null);
+        console.log(timer != null);
         if(timer && insertingMac == info.mac) {
           stop(server, insertingMac || "");
         }
