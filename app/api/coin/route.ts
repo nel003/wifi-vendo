@@ -187,8 +187,6 @@ export async function SOCKET(
       }
 
       if(data.value == "stop") {
-        console.log(insertingMac, info.mac);
-        console.log(timer != null);
         if(timer && insertingMac == info.mac) {
           stop(server, insertingMac || "");
         }
@@ -220,8 +218,8 @@ export async function SOCKET(
 
   client.on("close", () => {
     console.log("A client disconnected");
-
-    if (info.mac || !ip && info.mac === insertingMac) {
+    console.log(info.mac, insertingMac);
+    if (info.mac && info.mac === insertingMac) {
       stop(server, insertingMac || "");
     }
   });
