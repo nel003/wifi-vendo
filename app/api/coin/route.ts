@@ -26,6 +26,7 @@ function reset() {
 }
 
 async function stop(server: import("ws").WebSocketServer, mac: string) {
+  const coinsCopy = totalCoins;
   if (isPending) {
     setTimeout(() => {
       stop(server, insertingMac || "");
@@ -74,7 +75,7 @@ async function stop(server: import("ws").WebSocketServer, mac: string) {
       WHERE mac = ?`, [timeTotal * 1, timeTotal * 1, mac]);
 
     await db.execute(`
-      INSERT INTO transactionsVALUES(0, ?, ?)`, [totalCoins, mac]);
+      INSERT INTO transactions VALUES(0, ?, ?)`, [coinsCopy, mac]);
   
     const [final] = await db.execute<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [mac]);
   
