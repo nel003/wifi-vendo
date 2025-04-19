@@ -74,7 +74,7 @@ async function stop(server: import("ws").WebSocketServer, mac: string) {
       WHERE mac = ?`, [timeTotal * 1, timeTotal * 1, mac]);
 
     await db.execute(`
-      INSERT INTO transactions(amount, by) VALUES(?, ?)`, [totalCoins, mac]);
+      INSERT INTO transactionsVALUES(0, ?, ?)`, [totalCoins, mac]);
   
     const [final] = await db.execute<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [mac]);
   
