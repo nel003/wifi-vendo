@@ -4,7 +4,7 @@ import {  RowDataPacket } from "mysql2";
 
 export const GET = handler(async () => {
     try {
-        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM transactions;');
+        const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM transactions ORDER BY id DESC;');
         console.log(rows);
         return Response.json(rows, { status: 200 });
     } catch (error) {

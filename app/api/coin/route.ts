@@ -85,7 +85,6 @@ async function stop(server: import("ws").WebSocketServer, mac: string) {
     execSync(`ipset add allowed_macs ${mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`); 
   }
 
-  // client.send(JSON.stringify({from: "server", value: "closeslot"})); 
   reset();
 }
 
