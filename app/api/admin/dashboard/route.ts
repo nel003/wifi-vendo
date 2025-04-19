@@ -44,7 +44,20 @@ export async function GET(req: Request) {
     try {
         const ramUsage = getRAMUsage();
         const [cpuUsage, storageUsage] = await Promise.all([getCPUUsage(), getStorageUsage()]);
-        const [rows] = await db.query<RowDataPacket[]>('SELECT COUNT(id) as voucher_count, SUM(price) as sales, (SELECT COUNT(id) FROM vouchers WHERE used = 1) AS used_count,  (SELECT COUNT(id) FROM rates) AS rate_count,  (SELECT COUNT(id) FROM clients) AS client_count FROM vouchers;');
+        const [rows] = await db.query<RowDataPacket[]>(`
+          SELECT 
+              v.voucher_count,
+              v.v_earnings,
+              IFNULL(c.c_earnings, 0) AS c_earnings,
+              (v.v_earnings + IFNULL(c.c_earnings, 0)) AS sales,
+              (SELECT COUNT(id) FROM vouchers WHERE used = 1) AS used_count,
+              (SELECT COUNT(id) FROM rates) AS rate_count,
+              (SELECT COUNT(id) FROM clients) AS client_count
+          FROM 
+              (SELECT COUNT(id) AS voucher_count, SUM(price) AS v_earnings FROM vouchers) v,
+              (SELECT SUM(amount) AS c_earnings FROM transactions) c;
+        `);
+        
         return Response.json({ramUsage, cpuUsage, storageUsage, ...rows[0]}, { status: 200 });
     } catch (error) {
         console.log(error);

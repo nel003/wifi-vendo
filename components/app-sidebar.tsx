@@ -5,6 +5,7 @@ import {
   DollarSign,
   GalleryVerticalEnd,
   LayoutDashboard,
+  ReceiptText,
   Tickets,
   Users,
 } from "lucide-react"
@@ -50,6 +51,10 @@ const data = {
       title: "Clients",
       url: "/admin/clients",
       icon: Users
+    },{
+      title: "Transactions",
+      url: "/admin/transactions",
+      icon: ReceiptText
     },
   ]
 }
@@ -83,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {data.items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <div onClick={() => router.push(item.url)}>
+                    <div className="cursor-pointer" onClick={() => router.push(item.url)}>
                       <item.icon />
                       <span>{item.title}</span>
                     </div>

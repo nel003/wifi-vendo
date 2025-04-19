@@ -50,6 +50,14 @@ export interface Clients {
   active: boolean;
 }
 
+
+export interface Transaction {
+  id: number;
+  amount: number;
+  by: string;
+}
+
+
 export interface Dashboard {
   ramUsage: number
   cpuUsage: number
@@ -59,4 +67,6 @@ export interface Dashboard {
   used_count: number
   rate_count: number
   client_count: number
+  c_earnings: number
+  v_earnings: number
 }

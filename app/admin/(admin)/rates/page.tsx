@@ -189,7 +189,7 @@ export default function Page() {
                                 <TableCell>{rate.id}</TableCell>
                                 <TableCell className="whitespace-nowrap">{rate.name}</TableCell>
                                 <TableCell className="whitespace-nowrap">{rate.time}</TableCell>
-                                <TableCell className="text-right">{rate.price}</TableCell>
+                                <TableCell className="text-right">{rate.price.toLocaleString("en-PH", {style: "currency", currency: "PHP"})}</TableCell>
                                 <TableCell className="flex justify-end gap-3">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>

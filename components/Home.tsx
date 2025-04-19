@@ -326,7 +326,6 @@ export default function Home() {
                                 <DrawerFooter>
                                     <div className="w-full">
                                         <Table className="w-full">
-                                            <TableCaption>A list of rates.</TableCaption>
                                             <TableHeader>
                                                 <TableRow>
                                                     <TableHead>Price</TableHead>
@@ -342,6 +341,7 @@ export default function Home() {
                                                 ))}
                                             </TableBody>
                                         </Table>
+                                        <span className="h-4"></span>
                                     </div>
                                 </DrawerFooter>
                             </div>

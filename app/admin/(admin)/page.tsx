@@ -30,11 +30,19 @@ export default function Page() {
         <>
             <h1 className="text-lg font-bold ml-[7px]"> Dashboard</h1>
             <div className="grid grid-cols-[repeat(auto-fit,_minmax(320px,_1fr))] p-2 gap-4">
-                <div className="border rounded-md p-6">
-                    <span className="text-slate-600">Total Sales</span>
+                <div className="border rounded-md p-6 relative">
+                    <span className="text-slate-600">Total Earnings</span>
                     <div className="flex justify-between">
-                        <h1 className="text-3xl font-bold pt-2">{dashItem?.sales}</h1>
+                        <h1 className="text-3xl font-bold pt-2">₱{dashItem?.sales}</h1>
                         <TrendingUp className="mt-2 text-green-400" size={40}/>
+                    </div>
+                    <div className="absolute bottom-[1.1rem] flex gap-2">
+                        <div className="text-xs text-gray-400">
+                            Voucher: <span className="text-gray-600">{dashItem?.v_earnings}</span>
+                        </div>
+                        <div className="text-xs text-gray-400">
+                            Coins: <span className="text-gray-600">{dashItem?.c_earnings}</span>
+                        </div>
                     </div>
                 </div>
                 <div className="border rounded-md p-6">

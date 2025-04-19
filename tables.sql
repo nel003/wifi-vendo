@@ -107,3 +107,10 @@ CREATE TABLE `vouchers` (
   UNIQUE KEY `voucher` (`voucher`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+CREATE TABLE `transactions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `amount` int(11) DEFAULT NULL,
+  `by` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);

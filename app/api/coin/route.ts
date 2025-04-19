@@ -72,6 +72,9 @@ async function stop(server: import("ws").WebSocketServer, mac: string) {
       UPDATE clients
       SET paused = 0, can_pause = 1, expire_on = IF(expire_on > NOW(), DATE_ADD(expire_on, INTERVAL ? MINUTE), DATE_ADD(NOW(), INTERVAL ? MINUTE))
       WHERE mac = ?`, [timeTotal * 1, timeTotal * 1, mac]);
+
+    await db.execute(`
+      INSERT INTO transactions(amount, by) VALUES(?, ?)`, [totalCoins, mac]);
   
     const [final] = await db.execute<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [mac]);
   
@@ -151,10 +154,6 @@ export async function SOCKET(
     })
   }
 
-  // serialPort.on('close', () => {
-  //   client.send(JSON.stringify({from: "coinslot", for: insertingMac, value: "isClose"})); 
-  // })
-
   client.on("message", (message) => {
     const data = JSON.parse(message.toString());
 
@@ -193,179 +192,12 @@ export async function SOCKET(
       }
     }
 
-    // if (data.from == "coinslot" && data.secret == secret) {
-    //   if (data.type == "coin") {
-    //     seconds = max * 1000;
-    //     totalCoins += +data.value;
-    //     server.clients.forEach(c => {
-    //       if (c.protocol != "arduino") {
-    //         c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));
-    //       }
-    //     });
-    //   }
-    //   if (data.type == "gate") {
-    //     server.clients.forEach(c => {
-    //       if(c.protocol != "arduino") {
-    //         c.send(JSON.stringify({from: "coinslot", for: insertingMac, value: data.value})); 
-    //       }
-    //     }); 
-    //     isCSOpen = data.value == "isOpen";
-    //   }
-    // }
-
     console.log("Received message:", data);
   });
 
   client.on("close", () => {
-    console.log("A client disconnected");
-    console.log(info.mac, insertingMac);
     if (info.mac && info.mac === insertingMac) {
       stop(server, insertingMac || "");
     }
   });
 }
-
-
-// async function stop(server: import("ws").WebSocketServer, client: import("ws").WebSocket, mac: string) {
-//   console.log("MAC: ", mac)
-//   let timeTotal = 0;
-  
-//   server.clients.forEach(c => {
-//     if(c.protocol == "arduino") {
-//       c.send(JSON.stringify({from: "server", secret, value: "closeslot"}));
-//     } else {
-//       c.send(JSON.stringify({from: "coinslot", for: insertingMac, value: "isClose"})); 
-//     }
-//   }); 
-
-//   if (totalCoins > 0 && insertingMac?.trim() != "") {
-//     const [rows] = await db.query<RowDataPacket[]>("SELECT * FROM rates ORDER BY price DESC");
-//     const rates = rows as { price: number; time: number }[];
-
-//     console.log(rates);
-
-//     for (const r of rates) {
-//       const price = Number(r.price);
-      
-//       if (isNaN(price) || price <= 0) {
-//         console.log(`Skipping invalid rate:`, r);
-//         continue;
-//       }
-    
-//       if (totalCoins < price) {
-//         continue;
-//       }
-    
-//       const ans = Math.floor(totalCoins / price); 
-//       totalCoins %= price; 
-    
-//       if (ans < 1) {
-//         continue;
-//       }
-    
-//       timeTotal += ans * r.time;
-//     }
-
-//     await db.execute(`
-//       UPDATE clients
-//       SET paused = 0, can_pause = 1, expire_on = IF(expire_on > NOW(), DATE_ADD(expire_on, INTERVAL ? MINUTE), DATE_ADD(NOW(), INTERVAL ? MINUTE))
-//       WHERE mac = ?`, [timeTotal * 1, timeTotal * 1, mac]);
-  
-//     const [final] = await db.execute<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [mac]);
-  
-//     const expiryDate = moment(final[0].expire_on);
-//     const timeout = expiryDate.diff(moment(), 'seconds');
-    
-//     execSync(`ipset add allowed_macs ${mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`); 
-//   }
-
-//   // client.send(JSON.stringify({from: "server", value: "closeslot"})); 
-//   reset();
-// }
-
-// export async function SOCKET(
-//     client: import("ws").WebSocket,
-//     request: import("http").IncomingMessage,
-//     server: import("ws").WebSocketServer
-//   ) {
-//     const fIp = request.headers["x-forwarded-for"]?.toString() || request.socket.remoteAddress;
-//     const ip = fIp?.replace("::ffff:", "").split(',').shift();
-//     const info = await getDeviceInfoFromIp(ip);
-//     console.log("A client connected");
-//     console.log(ip)
-
-//     // console.log(server.clients)
-
-//     client.on("message", (message) => {
-//       const data = JSON.parse(message.toString());
-
-//       if(data.from == "user") {
-//         if (!info.mac || info.mac.trim() === "" || !ip) {
-//           client.close();
-//         }
-//         console.log(ip);
-
-//         if(info.mac && data.value == "start") {
-//           if(!timer || !insertingMac) {
-//             insertingMac = info.mac;
-//             server.clients.forEach(c => {
-//               if(c.protocol == "arduino") {
-//                 c.send(JSON.stringify({from: "server", secret: "secret", value: "openslot"}));
-//               }
-//             }); 
-//             seconds = max * 1000;
-
-//             timer = setInterval(() => {
-//               if (!isCSOpen) {
-//                 reset();
-//               }
-//               client.send(JSON.stringify({from: "timer", for: insertingMac, timeleft: (seconds / (max * 1000)) * 100 - 10}));
-//               if (seconds <= 0) {
-//                 stop(server, client, insertingMac || "");
-//               }
-//               seconds -= 1000;
-//               console.log(seconds)
-//             }, 1000);
-//           } else {
-//             client.send(JSON.stringify({from: "server", value: "inuse"}));
-//           }
-//         }
-
-//         if(data.value == "stop") {
-//           if(timer && insertingMac == info.mac) {
-//             stop(server, client, insertingMac || "");
-//           }
-//         }
-//       }
-
-//       if (data.from == "coinslot" && data.secret == secret) {
-//         if (data.type == "coin") {
-//           seconds = max * 1000;
-//           totalCoins += +data.value;
-//           server.clients.forEach(c => {
-//             if (c.protocol != "arduino") {
-//               c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));
-//             }
-//           });
-//         }
-//         if (data.type == "gate") {
-//           server.clients.forEach(c => {
-//             if(c.protocol != "arduino") {
-//               c.send(JSON.stringify({from: "coinslot", for: insertingMac, value: data.value})); 
-//             }
-//           }); 
-//           isCSOpen = data.value == "isOpen";
-//         }
-//       }
-
-//       console.log("Received message:", data);
-//     });
-  
-//     client.on("close", () => {
-//       console.log("A client disconnected");
-
-//       if (info.mac || !ip && info.mac === insertingMac || client.protocol == "arduino") {
-//         stop(server, client, insertingMac || "");
-//       }
-//     });
-//   }
