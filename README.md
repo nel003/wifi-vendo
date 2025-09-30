@@ -117,30 +117,30 @@ server=8.8.8.8
 server=8.8.4.4
 
 # Enable DHCP server
-dhcp-range=10.0.0.20,10.0.0.98,12h
-dhcp-range=10.0.0.100,10.0.0.245,12h
+dhcp-range=10.0.0.20,10.0.0.98,4h
+dhcp-range=10.0.0.100,10.0.0.245,4h
 
 # Set gateway (router)
-dhcp-option=3,192.168.2.1
-dhcp-option=6,192.168.2.1
+dhcp-option=3,10.0.0.1
+dhcp-option=6,10.0.0.1
 
 # Set subnet mask
 dhcp-option=1,255.255.255.0
 
 # Set broadcast address
-dhcp-option=28,192.168.2.255
+dhcp-option=28,10.0.0.255
 
 dhcp-option=lan,114,http://nel.wifi
 
 # DNS redirection for captive portal and connectivity checks
-address=/ariel.wifi/192.168.2.1
-address=/connectivitycheck.gstatic.com/192.168.2.1
-address=/connectivitycheck.android.com/192.168.2.1
-address=/clients1.google.com/192.168.2.1
-address=/clients3.google.com/192.168.2.1
-address=/clients.4.google.com/192.168.2.1
-address=/captive.apple.com/192.168.2.1
-address=/msftconnecttest.com/192.168.2.1
+address=/ariel.wifi/10.0.0.1
+address=/connectivitycheck.gstatic.com/10.0.0.1
+address=/connectivitycheck.android.com/10.0.0.1
+address=/clients1.google.com/10.0.0.1
+address=/clients3.google.com/10.0.0.1
+address=/clients.4.google.com/10.0.0.1
+address=/captive.apple.com/10.0.0.1
+address=/msftconnecttest.com/10.0.0.1
 
 # Logging
 log-queries
@@ -261,7 +261,9 @@ iptables -t mangle -A PREROUTING -i "$LAN_IFACE" -m set ! --match-set allowed_ma
 # 3. (Optional) Redirect unauthorized web traffic (mark 99) to captive portal.
 # Replace 10.0.0.1 with your captive portal IP.
 iptables -t nat -A PREROUTING -i "$LAN_IFACE" -m mark --mark 99 -p tcp --dport 80 -j DNAT --to-destination 10.0.0.1
-iptables -t nat -A PREROUTING -i "$LAN_IFACE" -m mark --mark 99 -p tcp --dport 443 -j DNAT --to-destination 10.0.0.1
+#iptables -t nat -A PREROUTING -i "$LAN_IFACE" -m mark --mark 99 -p tcp --dport 443 -j DNAT --to-destination 10.0.0.1
+
+iptables -A FORWARD -i "$LAN_IFACE" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 # 4. Drop forwarded traffic from unauthorized devices (if desired)
 iptables -A FORWARD -i "$LAN_IFACE" -m mark --mark 99 -j DROP
@@ -277,6 +279,14 @@ iptables -t mangle -A POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1
 
 # Enable IP forwarding
 sysctl -w net.ipv4.ip_forward=1
+
+# increase conntrack table
+sysctl -w net.netfilter.nf_conntrack_max=262144
+
+# tune some timeouts (values you can adjust)
+sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=86400   # 24h
+sysctl -w net.netfilter.nf_conntrack_udp_timeout=60
+sysctl -w net.ipv4.tcp_tw_reuse=1
 
 # Sync system time (optional, adjust if necessary)
 ntpdate time.google.com
