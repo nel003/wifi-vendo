@@ -1,11 +1,11 @@
 "use client"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
@@ -15,46 +15,46 @@ import { useState } from "react"
 import axios from "axios"
 import { useToast } from "@/hooks/use-toast"
 import { ErrorResponse } from "@/types/types"
-import { adminStore } from "@/store/user"
+import { useAdminAuth } from "@/hooks/use-admin-auth"
 import { useRouter } from "next/navigation"
 
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const { toast } = useToast();
-    const setAdmin = adminStore(u => u.setAdminUser);
+    const { login: setAuthUser } = useAdminAuth();
     const router = useRouter();
 
     async function login() {
         try {
             toast({
                 title: "Please wait",
-                description: "Loggin in.."
+                description: "Logging in.."
             })
             const res = await axios.post("/api/admin/login", {
                 username,
                 password
             });
-            setAdmin(res.data);
+
+            // Login successful
+            setAuthUser(res.data);
+
             toast({
                 title: "Okay",
-                description: "Loggin success"
+                description: "Login success"
             })
-            axios.defaults.headers.common["Authorization"] = "Bearer "+res.data.token;
-            axios.defaults.headers.common["Cache-Control"] = "no-cache, no-store, must-revalidate";
-            axios.defaults.headers.common["Pragma"] = "no-cache";
-            axios.defaults.headers.common["Expires"] = "0";
+
             router.push("/admin");
         } catch (error: any) {
             console.log(error)
             const err = error as ErrorResponse;
             toast({
                 title: "Error",
-                description: err.response.data.msg
+                description: err.response?.data?.msg || "Login failed"
             })
         }
     }
-    
+
     return <>
         <div className="grid place-items-center w-screen h-screen">
             <Card className="min-w-[280px] max-w-[420px] w-full">
@@ -70,9 +70,9 @@ export default function Login() {
                 </CardHeader>
                 <CardContent>
                     <Label>Username</Label>
-                    <Input onChange={(e) => setUsername(e.target.value)} value={username} type="text" placeholder="E.g admin123"/>
+                    <Input onChange={(e) => setUsername(e.target.value)} value={username} type="text" placeholder="E.g admin123" />
                     <Label>Password</Label>
-                    <Input onChange={(e) => setPassword(e.target.value)} value={password}  type="password" placeholder="E.g admin!@123"/>
+                    <Input onChange={(e) => setPassword(e.target.value)} value={password} type="password" placeholder="E.g admin!@123" />
                 </CardContent>
                 <CardFooter>
                     <Button disabled={!username || !password} onClick={login} className="w-full">Login</Button>

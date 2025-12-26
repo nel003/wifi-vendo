@@ -1,4 +1,4 @@
-// File: /root/wifi-vendo/app/connecttest.txt/route.ts
+// File: C:\Users\bispl\OneDrive\Desktop\arns\wifi-vendo\app\connecttest.txt\route.ts
 import * as entry from '../../../../app/connecttest.txt/route.js'
 import type { NextRequest } from 'next/server.js'
 

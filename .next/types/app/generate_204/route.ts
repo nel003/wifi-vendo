@@ -1,4 +1,4 @@
-// File: /root/wifi-vendo/app/generate_204/route.ts
+// File: C:\Users\bispl\OneDrive\Desktop\arns\wifi-vendo\app\generate_204\route.ts
 import * as entry from '../../../../app/generate_204/route.js'
 import type { NextRequest } from 'next/server.js'
 

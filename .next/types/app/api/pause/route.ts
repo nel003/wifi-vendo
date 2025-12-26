@@ -1,4 +1,4 @@
-// File: /root/wifi-vendo/app/api/pause/route.ts
+// File: C:\Users\bispl\OneDrive\Desktop\arns\wifi-vendo\app\api\pause\route.ts
 import * as entry from '../../../../../app/api/pause/route.js'
 import type { NextRequest } from 'next/server.js'
 

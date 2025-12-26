@@ -1,4 +1,4 @@
-// File: /root/wifi-vendo/app/redirect/route.ts
+// File: C:\Users\bispl\OneDrive\Desktop\arns\wifi-vendo\app\redirect\route.ts
 import * as entry from '../../../../app/redirect/route.js'
 import type { NextRequest } from 'next/server.js'
 

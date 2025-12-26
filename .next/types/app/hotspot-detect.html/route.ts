@@ -1,4 +1,4 @@
-// File: /root/wifi-vendo/app/hotspot-detect.html/route.ts
+// File: C:\Users\bispl\OneDrive\Desktop\arns\wifi-vendo\app\hotspot-detect.html\route.ts
 import * as entry from '../../../../app/hotspot-detect.html/route.js'
 import type { NextRequest } from 'next/server.js'
 
