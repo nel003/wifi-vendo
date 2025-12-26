@@ -8,12 +8,12 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-  } from "@/components/ui/table"
+} from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast";
 import { Rate } from "@/types/types";
-import axios from "axios";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react"
+import { useAdminAuth } from "@/hooks/use-admin-auth";
 import {
     Dialog,
     DialogClose,
@@ -23,7 +23,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog"
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input";
 import {
@@ -36,18 +36,19 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-  } from "@/components/ui/alert-dialog"
-  
+} from "@/components/ui/alert-dialog"
+
 export default function Page() {
     const [rates, setRates] = useState<Rate[] | []>([])
     const { toast } = useToast();
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
-    const [time, setTime] = useState(""); 
+    const [time, setTime] = useState("");
+    const { adminApi } = useAdminAuth();
 
     const init = useCallback(async () => {
         try {
-            const res = await axios.get('/api/admin/rates');
+            const res = await adminApi.get('/api/admin/rates');
             setRates(res.data.sort((a: Rate, b: Rate) => a.price - b.price));
         } catch (error) {
             console.error(error)
@@ -55,8 +56,8 @@ export default function Page() {
                 title: 'Error',
                 description: 'Failed to fetch rates',
             })
-        }    
-    }, [setRates, toast]);
+        }
+    }, [setRates, toast, adminApi]);
 
     useEffect(() => {
         init();
@@ -68,7 +69,7 @@ export default function Page() {
             description: 'Please wait while adding the rate',
         })
         try {
-            await axios.post('/api/admin/rates', {
+            await adminApi.post('/api/admin/rates', {
                 name,
                 price,
                 time
@@ -93,7 +94,7 @@ export default function Page() {
             description: 'Please wait while updating the rate',
         })
         try {
-            await axios.put('/api/admin/rates', {
+            await adminApi.put('/api/admin/rates', {
                 id,
                 name,
                 price,
@@ -119,7 +120,7 @@ export default function Page() {
             description: 'Please wait while deleting the rate',
         })
         try {
-            await axios.delete(`/api/admin/rates?id=${id}`);
+            await adminApi.delete(`/api/admin/rates?id=${id}`);
             toast({
                 title: 'Success',
                 description: 'Rate deleted successfully',
@@ -134,14 +135,14 @@ export default function Page() {
         }
     }
 
-    return(
+    return (
         <>
             <div className="w-full">
                 <div className="flex justify-between">
                     <h1 className="text-lg font-bold ml-[7px]">Rates</h1>
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button variant="outline" className="ml-[7px]"><Plus/> New Rate</Button>
+                            <Button variant="outline" className="ml-[7px]"><Plus /> New Rate</Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
@@ -189,7 +190,7 @@ export default function Page() {
                                 <TableCell>{rate.id}</TableCell>
                                 <TableCell className="whitespace-nowrap">{rate.name}</TableCell>
                                 <TableCell className="whitespace-nowrap">{rate.time}</TableCell>
-                                <TableCell className="text-right">{rate.price.toLocaleString("en-PH", {style: "currency", currency: "PHP"})}</TableCell>
+                                <TableCell className="text-right">{rate.price.toLocaleString("en-PH", { style: "currency", currency: "PHP" })}</TableCell>
                                 <TableCell className="flex justify-end gap-3">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
@@ -197,17 +198,17 @@ export default function Page() {
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This action cannot be undone. This will permanently delete the rate.
-                                            </AlertDialogDescription>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the rate.
+                                                </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction  onClick={() => del(rate.id.toString())}>Continue</AlertDialogAction>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => del(rate.id.toString())}>Continue</AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
-                                        </AlertDialog>
+                                    </AlertDialog>
                                     <Dialog onOpenChange={() => {
                                         setName(rate.name);
                                         setPrice(rate.price.toString());
@@ -243,7 +244,7 @@ export default function Page() {
                                                 </DialogClose>
                                             </DialogFooter>
                                         </DialogContent>
-                                    </Dialog>   
+                                    </Dialog>
                                 </TableCell>
                             </TableRow>
                         ))}

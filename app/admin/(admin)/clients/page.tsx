@@ -8,7 +8,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-  } from "@/components/ui/table"
+} from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast";
 import { Clients, Rate } from "@/types/types";
 import axios, { AxiosError } from "axios";
@@ -22,23 +22,24 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog"
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input";
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-  } from "@/components/ui/popover"
-  import { addDays, format } from "date-fns"
-  import {
+} from "@/components/ui/popover"
+import { addDays, format } from "date-fns"
+import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-  } from "@/components/ui/select"
-  import { cn } from "@/lib/utils"
+} from "@/components/ui/select"
+import { cn } from "@/lib/utils"
+import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { CalendarIcon, Search } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 
@@ -48,10 +49,11 @@ export default function Page() {
     const [label, setLabel] = useState("");
     const [date, setDate] = useState<Date>();
     const [filter, setFilter] = useState("");
-    
+    const { adminApi } = useAdminAuth();
+
     const init = useCallback(async () => {
         try {
-            const res = await axios.get('/api/admin/clients?filter='+filter);
+            const res = await adminApi.get('/api/admin/clients?filter=' + filter);
             setClients(res.data)
         } catch (error) {
             console.error(error)
@@ -59,8 +61,8 @@ export default function Page() {
                 title: 'Error',
                 description: 'Failed to fetch clients',
             })
-        }    
-    }, [setClients, toast, filter]);
+        }
+    }, [setClients, toast, filter, adminApi]);
     console.log(clients)
     useEffect(() => {
         init();
@@ -72,7 +74,7 @@ export default function Page() {
             description: 'Please wait while updating the cllient',
         })
         try {
-            await axios.put('/api/admin/clients', {
+            await adminApi.put('/api/admin/clients', {
                 id,
                 label,
                 mac,
@@ -91,15 +93,15 @@ export default function Page() {
             });
         }
     }
-    
-    return(
+
+    return (
         <>
             <div className="w-full">
                 <div className="flex justify-between">
                     <h1 className="text-lg font-bold ml-[7px]">Clients</h1>
                     <div className="relative">
-                        <Search className="absolute top-2 left-2 text-gray-500" size={20}/>
-                        <Input onChange={(e) => setFilter(e.target.value)} value={filter} placeholder="Find client" className="pl-8"/>
+                        <Search className="absolute top-2 left-2 text-gray-500" size={20} />
+                        <Input onChange={(e) => setFilter(e.target.value)} value={filter} placeholder="Find client" className="pl-8" />
                     </div>
                 </div>
 
@@ -122,10 +124,10 @@ export default function Page() {
                     <TableBody>
                         {clients.filter(c => (c.active)).map((client) => (
                             <TableRow key={client.id}>
-                                <TableCell className="w-8">{client.id}</TableCell>                         
+                                <TableCell className="w-8">{client.id}</TableCell>
                                 <TableCell>{client.mac}</TableCell>
-                                <TableCell className="whitespace-nowrap">{client.device}</TableCell>                         
-                                <TableCell className="whitespace-nowrap">{client.label}</TableCell>                         
+                                <TableCell className="whitespace-nowrap">{client.device}</TableCell>
+                                <TableCell className="whitespace-nowrap">{client.label}</TableCell>
                                 <TableCell className="text-right py-4 whitespace-nowrap">{new Date(client.expire_on).toLocaleString()}</TableCell>
                                 <TableCell className="flex justify-end gap-3 w-auto">
                                     <Dialog onOpenChange={() => setLabel(client.label || "")}>
@@ -134,60 +136,60 @@ export default function Page() {
                                         </DialogTrigger>
                                         <DialogContent className="sm:max-w-[425px]">
                                             <DialogHeader>
-                                            <DialogTitle>Edit client</DialogTitle>
-                                            <DialogDescription>
-                                                Make changes to your client here. Click save when you're done.
-                                            </DialogDescription>
+                                                <DialogTitle>Edit client</DialogTitle>
+                                                <DialogDescription>
+                                                    Make changes to your client here. Click save when you're done.
+                                                </DialogDescription>
                                             </DialogHeader>
                                             <div className="grid gap-4 py-4">
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="name" className="text-right">
-                                                Label
-                                                </Label>
-                                                <Input
-                                                onChange={(e) => setLabel(e.target.value)}
-                                                value={label}
-                                                className="col-span-3"
-                                                />
-                                            </div>
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="username" className="text-right">
-                                                Set expiry
-                                                </Label>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                        variant={"outline"}
-                                                        className={cn(
-                                                            "w-[280px] justify-start text-left font-normal",
-                                                            !date && "text-muted-foreground"
-                                                        )}
-                                                        >
-                                                        <CalendarIcon />
-                                                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
-                                                        <Select
-                                                        onValueChange={(value) =>
-                                                            setDate(addDays(new Date(), parseInt(value)))
-                                                        }
-                                                        >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select" />
-                                                        </SelectTrigger>
-                                                        <SelectContent position="popper">
-                                                            <SelectItem value="1">1 Day</SelectItem>
-                                                            <SelectItem value="3">3 Days</SelectItem>
-                                                            <SelectItem value="7">7 Days</SelectItem>
-                                                        </SelectContent>
-                                                        </Select>
-                                                        <div className="rounded-md border">
-                                                        <Calendar mode="single" selected={date} onSelect={setDate} />
-                                                        </div>
-                                                    </PopoverContent>
+                                                <div className="grid grid-cols-4 items-center gap-4">
+                                                    <Label htmlFor="name" className="text-right">
+                                                        Label
+                                                    </Label>
+                                                    <Input
+                                                        onChange={(e) => setLabel(e.target.value)}
+                                                        value={label}
+                                                        className="col-span-3"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-4 items-center gap-4">
+                                                    <Label htmlFor="username" className="text-right">
+                                                        Set expiry
+                                                    </Label>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                variant={"outline"}
+                                                                className={cn(
+                                                                    "w-[280px] justify-start text-left font-normal",
+                                                                    !date && "text-muted-foreground"
+                                                                )}
+                                                            >
+                                                                <CalendarIcon />
+                                                                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
+                                                            <Select
+                                                                onValueChange={(value) =>
+                                                                    setDate(addDays(new Date(), parseInt(value)))
+                                                                }
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select" />
+                                                                </SelectTrigger>
+                                                                <SelectContent position="popper">
+                                                                    <SelectItem value="1">1 Day</SelectItem>
+                                                                    <SelectItem value="3">3 Days</SelectItem>
+                                                                    <SelectItem value="7">7 Days</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <div className="rounded-md border">
+                                                                <Calendar mode="single" selected={date} onSelect={setDate} />
+                                                            </div>
+                                                        </PopoverContent>
                                                     </Popover>
-                                            </div>
+                                                </div>
                                             </div>
                                             <DialogFooter>
                                                 <DialogClose asChild>
@@ -195,13 +197,13 @@ export default function Page() {
                                                 </DialogClose>
                                             </DialogFooter>
                                         </DialogContent>
-                                        </Dialog>
+                                    </Dialog>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
-                
+
                 <div className="flex pl-2 gap-2">
                     <span className="block h-2 w-2 rounded-full bg-gray-300 mt-[0.4rem]"></span>
                     <h1 className="text-sm">Offline</h1>
@@ -221,10 +223,10 @@ export default function Page() {
                     <TableBody>
                         {clients.filter(c => (!c.active)).map((client) => (
                             <TableRow key={client.id}>
-                                <TableCell className="w-8">{client.id}</TableCell>                         
+                                <TableCell className="w-8">{client.id}</TableCell>
                                 <TableCell>{client.mac}</TableCell>
-                                <TableCell className="whitespace-nowrap">{client.device}</TableCell>                         
-                                <TableCell className="whitespace-nowrap">{client.label}</TableCell>                         
+                                <TableCell className="whitespace-nowrap">{client.device}</TableCell>
+                                <TableCell className="whitespace-nowrap">{client.label}</TableCell>
                                 <TableCell className="text-right py-4 whitespace-nowrap">{new Date(client.expire_on).toLocaleString()}</TableCell>
                                 <TableCell className="flex justify-end gap-3 w-auto">
                                     <Dialog onOpenChange={() => setLabel(client.label || "")}>
@@ -233,60 +235,60 @@ export default function Page() {
                                         </DialogTrigger>
                                         <DialogContent className="sm:max-w-[425px]">
                                             <DialogHeader>
-                                            <DialogTitle>Edit client</DialogTitle>
-                                            <DialogDescription>
-                                                Make changes to your client here. Click save when you're done.
-                                            </DialogDescription>
+                                                <DialogTitle>Edit client</DialogTitle>
+                                                <DialogDescription>
+                                                    Make changes to your client here. Click save when you're done.
+                                                </DialogDescription>
                                             </DialogHeader>
                                             <div className="grid gap-4 py-4">
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="name" className="text-right">
-                                                Label
-                                                </Label>
-                                                <Input
-                                                onChange={(e) => setLabel(e.target.value)}
-                                                value={label}
-                                                className="col-span-3"
-                                                />
-                                            </div>
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="username" className="text-right">
-                                                Set expiry
-                                                </Label>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                        variant={"outline"}
-                                                        className={cn(
-                                                            "w-[280px] justify-start text-left font-normal",
-                                                            !date && "text-muted-foreground"
-                                                        )}
-                                                        >
-                                                        <CalendarIcon />
-                                                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
-                                                        <Select
-                                                        onValueChange={(value) =>
-                                                            setDate(addDays(new Date(), parseInt(value)))
-                                                        }
-                                                        >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select" />
-                                                        </SelectTrigger>
-                                                        <SelectContent position="popper">
-                                                            <SelectItem value="1">1 Day</SelectItem>
-                                                            <SelectItem value="3">3 Days</SelectItem>
-                                                            <SelectItem value="7">7 Days</SelectItem>
-                                                        </SelectContent>
-                                                        </Select>
-                                                        <div className="rounded-md border">
-                                                        <Calendar mode="single" selected={date} onSelect={setDate} />
-                                                        </div>
-                                                    </PopoverContent>
+                                                <div className="grid grid-cols-4 items-center gap-4">
+                                                    <Label htmlFor="name" className="text-right">
+                                                        Label
+                                                    </Label>
+                                                    <Input
+                                                        onChange={(e) => setLabel(e.target.value)}
+                                                        value={label}
+                                                        className="col-span-3"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-4 items-center gap-4">
+                                                    <Label htmlFor="username" className="text-right">
+                                                        Set expiry
+                                                    </Label>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                variant={"outline"}
+                                                                className={cn(
+                                                                    "w-[280px] justify-start text-left font-normal",
+                                                                    !date && "text-muted-foreground"
+                                                                )}
+                                                            >
+                                                                <CalendarIcon />
+                                                                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
+                                                            <Select
+                                                                onValueChange={(value) =>
+                                                                    setDate(addDays(new Date(), parseInt(value)))
+                                                                }
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select" />
+                                                                </SelectTrigger>
+                                                                <SelectContent position="popper">
+                                                                    <SelectItem value="1">1 Day</SelectItem>
+                                                                    <SelectItem value="3">3 Days</SelectItem>
+                                                                    <SelectItem value="7">7 Days</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <div className="rounded-md border">
+                                                                <Calendar mode="single" selected={date} onSelect={setDate} />
+                                                            </div>
+                                                        </PopoverContent>
                                                     </Popover>
-                                            </div>
+                                                </div>
                                             </div>
                                             <DialogFooter>
                                                 <DialogClose asChild>
@@ -294,7 +296,7 @@ export default function Page() {
                                                 </DialogClose>
                                             </DialogFooter>
                                         </DialogContent>
-                                        </Dialog>
+                                    </Dialog>
                                 </TableCell>
                             </TableRow>
                         ))}

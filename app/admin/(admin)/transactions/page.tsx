@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Transaction } from "@/types/types";
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import {
     AlertDialog,
@@ -15,16 +14,18 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-  } from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog"
+import { useAdminAuth } from "@/hooks/use-admin-auth";
 
 function Transactions() {
     const { toast } = useToast();
     const [transactions, setTransactions] = useState<Transaction[] | []>([])
-    
+    const { adminApi } = useAdminAuth();
+
 
     const init = useCallback(async () => {
         try {
-            const res = await axios.get('/api/admin/transactions');
+            const res = await adminApi.get('/api/admin/transactions');
             setTransactions(res.data);
         } catch (error) {
             console.error(error)
@@ -32,8 +33,8 @@ function Transactions() {
                 title: 'Error',
                 description: 'Failed to fetch rates',
             })
-        }    
-    }, [setTransactions, toast]);
+        }
+    }, [setTransactions, toast, adminApi]);
 
     useEffect(() => {
         init();
@@ -41,7 +42,7 @@ function Transactions() {
 
     async function reset() {
         try {
-            await axios.delete('/api/admin/transactions');
+            await adminApi.delete('/api/admin/transactions');
             setTransactions([])
         } catch (error) {
             console.error(error)
@@ -49,7 +50,7 @@ function Transactions() {
                 title: 'Error',
                 description: 'Failed to fetch rates',
             })
-        }  
+        }
     }
 
     return (
@@ -87,13 +88,13 @@ function Transactions() {
                         {transactions?.map((tran) => (
                             <TableRow key={tran.id}>
                                 <TableCell>{tran.by}</TableCell>
-                                <TableCell>{tran.amount.toLocaleString("en-PH", {style: "currency", currency: "PHP"})}</TableCell>
+                                <TableCell>{tran.amount.toLocaleString("en-PH", { style: "currency", currency: "PHP" })}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
                 <span className="h-4"></span>
-            </div>  
+            </div>
         </div>
     )
 }

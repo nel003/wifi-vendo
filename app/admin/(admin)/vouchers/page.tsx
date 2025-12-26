@@ -8,7 +8,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-  } from "@/components/ui/table"
+} from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast";
 import { Rate, Voucher } from "@/types/types";
 import axios from "axios";
@@ -23,7 +23,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog"
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import {
     Select,
@@ -31,8 +31,9 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-  } from "@/components/ui/select"
-  import {
+} from "@/components/ui/select"
+import { useAdminAuth } from "@/hooks/use-admin-auth";
+import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -42,21 +43,22 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-  } from "@/components/ui/alert-dialog"
-  
-  
+} from "@/components/ui/alert-dialog"
+
+
 export default function Page() {
-    const [rates, setRates] = useState<Rate[] | []>([])  
-    const [vouchers, setVouchers] = useState<Voucher[] | []>([])  
+    const [rates, setRates] = useState<Rate[] | []>([])
+    const [vouchers, setVouchers] = useState<Voucher[] | []>([])
     const { toast } = useToast();
     const [rate, setRate] = useState("");
+    const { adminApi } = useAdminAuth();
 
-    const [modal, setModal] = useState(false);  
-    const [vocuher, setVoucher] = useState("");  
+    const [modal, setModal] = useState(false);
+    const [vocuher, setVoucher] = useState("");
     console.log(vouchers)
     const initRates = useCallback(async () => {
         try {
-            const res = await axios.get('/api/admin/rates');
+            const res = await adminApi.get('/api/admin/rates');
             setRates(res.data)
         } catch (error) {
             console.error(error)
@@ -64,13 +66,13 @@ export default function Page() {
                 title: 'Error',
                 description: 'Failed to fetch rates',
             })
-        }    
-    }, [setRates, toast]);
+        }
+    }, [setRates, toast, adminApi]);
 
     const initVouchers = useCallback(async () => {
         try {
-            const res = await axios.get('/api/admin/vouchers');
-            const newArr = res.data.map((v: Voucher) => ({...v, hidden: true}));
+            const res = await adminApi.get('/api/admin/vouchers');
+            const newArr = res.data.map((v: Voucher) => ({ ...v, hidden: true }));
             setVouchers(newArr)
         } catch (error) {
             console.error(error)
@@ -78,8 +80,8 @@ export default function Page() {
                 title: 'Error',
                 description: 'Failed to fetch vouchers',
             })
-        }    
-    }, [setVouchers, toast]);
+        }
+    }, [setVouchers, toast, adminApi]);
 
     useEffect(() => {
         initRates();
@@ -92,7 +94,7 @@ export default function Page() {
             description: 'Please wait while adding the rate',
         })
         try {
-            const res = await axios.post('/api/admin/vouchers', {
+            const res = await adminApi.post('/api/admin/vouchers', {
                 rate
             });
             toast({
@@ -111,14 +113,14 @@ export default function Page() {
         }
     }
 
-    
+
     async function del(id: string | number) {
         toast({
             title: 'Processing',
             description: 'Please wait while deleting the voucher',
         })
         try {
-            await axios.delete(`/api/admin/vouchers?id=${id}`);
+            await adminApi.delete(`/api/admin/vouchers?id=${id}`);
             toast({
                 title: 'Success',
                 description: 'Voucher deleted successfully',
@@ -133,14 +135,14 @@ export default function Page() {
         }
     }
 
-    return(
+    return (
         <>
             <div className="w-full">
                 <div className="flex justify-between">
                     <h1 className="text-lg font-bold ml-[7px]">Voucher</h1>
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button variant="outline" className="ml-[7px]"><Plus/>Create Voucher</Button>
+                            <Button variant="outline" className="ml-[7px]"><Plus />Create Voucher</Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
@@ -188,26 +190,26 @@ export default function Page() {
                         {vouchers.map((vouch) => (
                             <TableRow key={vouch.id}>
                                 <TableCell>{vouch.id}</TableCell>
-                                <TableCell onClick={() => setVouchers(vouchers.map(v => ({...v, hidden: v.id === vouch.id ? !v.hidden : v.hidden})))}>{vouch.hidden ? vouch.voucher.slice(0,1) + "*****" : vouch.voucher}</TableCell>
-                                <TableCell>{vouch.price.toLocaleString("en-PH", {style: "currency", currency: "PHP"})}</TableCell>
+                                <TableCell onClick={() => setVouchers(vouchers.map(v => ({ ...v, hidden: v.id === vouch.id ? !v.hidden : v.hidden })))}>{vouch.hidden ? vouch.voucher.slice(0, 1) + "*****" : vouch.voucher}</TableCell>
+                                <TableCell>{vouch.price.toLocaleString("en-PH", { style: "currency", currency: "PHP" })}</TableCell>
                                 <TableCell>{vouch.time}</TableCell>
                                 <TableCell className="text-right">{vouch.used ? "True" : "False"}</TableCell>
                                 <TableCell className="flex justify-end gap-3">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                                <Button>Delete</Button>
+                                            <Button>Delete</Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This action cannot be undone. This will permanently delete your account
-                                                and remove your data from our servers.
-                                            </AlertDialogDescription>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete your account
+                                                    and remove your data from our servers.
+                                                </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => del(vouch.id)}>Continue</AlertDialogAction>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => del(vouch.id)}>Continue</AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -221,13 +223,13 @@ export default function Page() {
             <Dialog open={modal} onOpenChange={(o) => setModal(o)}>
                 <DialogContent>
                     <DialogHeader>
-                    <DialogTitle className="text-center">Voucher Created</DialogTitle>
-                    <DialogDescription className="text-center">
-                        Voucher has been created successfully. Here is the voucher code.
-                    </DialogDescription>
-                    <div className="py-12">
-                        <h1 className="text-center w-full text-5xl">{vocuher.slice(0, 3)} - {vocuher.slice(3, 6)}</h1>
-                    </div>
+                        <DialogTitle className="text-center">Voucher Created</DialogTitle>
+                        <DialogDescription className="text-center">
+                            Voucher has been created successfully. Here is the voucher code.
+                        </DialogDescription>
+                        <div className="py-12">
+                            <h1 className="text-center w-full text-5xl">{vocuher.slice(0, 3)} - {vocuher.slice(3, 6)}</h1>
+                        </div>
                     </DialogHeader>
                 </DialogContent>
             </Dialog>

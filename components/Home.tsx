@@ -1,6 +1,7 @@
 "use client"
 import moment from "moment-timezone";
 import { userStore } from "@/store/user";
+import { useSettingsStore } from "@/store/settings-store";
 import {
     Coins,
     EllipsisVertical,
@@ -16,7 +17,8 @@ import {
     Signal,
     History,
     Plus,
-    Moon
+    Moon,
+    CoinsIcon
 } from "lucide-react";
 import {
     AlertDialog,
@@ -96,6 +98,11 @@ export default function Home() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [waitingForCoin, setWaitingForCoin] = useState(false);
 
+    const { appName, version, hasCoinslot, fetchSettings } = useSettingsStore();
+
+    useEffect(() => {
+        fetchSettings();
+    }, [fetchSettings]);
 
     const loadRates = useCallback(async () => {
         try {
@@ -269,7 +276,7 @@ export default function Home() {
                     <div className="bg-emerald-500 rounded-lg p-1.5 shadow-lg shadow-emerald-500/20">
                         <WifiHigh className="text-white" size={20} />
                     </div>
-                    <span className="font-bold text-slate-700 tracking-tight text-lg">WIFI VENDO</span>
+                    <span className="font-bold text-slate-700 tracking-tight text-lg uppercase">{appName}</span>
                 </div>
 
             </nav>
@@ -305,7 +312,7 @@ export default function Home() {
 
                         {/* Network Name */}
                         <div className="text-center mb-10">
-                            <h1 className="text-2xl font-extrabold text-slate-900 mb-1 tracking-tight">WiFi Vendo Public</h1>
+                            <h1 className="text-2xl font-extrabold text-slate-900 mb-1 tracking-tight">{appName}</h1>
                             <p className="text-slate-400 font-medium text-sm">Session Active</p>
                         </div>
 
@@ -382,11 +389,17 @@ export default function Home() {
                                         </AlertDialogFooter>
                                     </AlertDialogContent>
                                 </AlertDialog>
-                                {process.env.NEXT_PUBLIC_HAS_COINSLOT === "true" && (
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Extend</span>
+                            </div>
+
+                            {/* Coin */}
+                            {hasCoinslot && (
+                                <div className="flex flex-col items-center gap-2">
                                     <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                                         <DrawerTrigger asChild>
-                                            {/* Optionally add a coin button here or merge functionality */}
-                                            <span className="hidden"></span>
+                                            <Button size="icon" className="h-14 w-14 rounded-2xl bg-green-50 hover:bg-green-100 text-green-600 shadow-none border border-transparent transition-all">
+                                                <CoinsIcon size={24} strokeWidth={2.5} />
+                                            </Button>
                                         </DrawerTrigger>
                                         <DrawerContent>
                                             <div className="mx-auto w-full max-w-sm">
@@ -398,10 +411,9 @@ export default function Home() {
                                             </div>
                                         </DrawerContent>
                                     </Drawer>
-                                )}
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Extend</span>
-                            </div>
-
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Coin</span>
+                                </div>
+                            )}
 
                             {/* Pause / Play */}
                             <div className="flex flex-col items-center gap-2">

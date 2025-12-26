@@ -8,6 +8,7 @@ import {
   ReceiptText,
   Tickets,
   Users,
+  Settings,
 } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -38,10 +39,10 @@ const data = {
       icon: LayoutDashboard
     },
     {
-        title: "Rates",
-        url: "/admin/rates",
-        icon: DollarSign
-      },
+      title: "Rates",
+      url: "/admin/rates",
+      icon: DollarSign
+    },
     {
       title: "Vouchers",
       url: "/admin/vouchers",
@@ -51,11 +52,16 @@ const data = {
       title: "Clients",
       url: "/admin/clients",
       icon: Users
-    },{
+    }, {
       title: "Transactions",
       url: "/admin/transactions",
       icon: ReceiptText
     },
+    {
+      title: "Settings",
+      url: "/admin/settings",
+      icon: Settings
+    }
   ]
 }
 
