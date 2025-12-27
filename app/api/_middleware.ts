@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-// Forced recompile update
 
 export default function handler(route: (req?: Request) => Promise<Response>) {
     return async function (req: Request) {

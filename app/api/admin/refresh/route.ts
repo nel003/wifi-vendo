@@ -1,8 +1,10 @@
-import { generateAccessToken, getRefreshTokenFromCookie, verifyToken } from "@/lib/auth";
+import { generateAccessToken, verifyToken } from "@/lib/auth";
+import db from "@/lib/database";
+import { RowDataPacket } from "mysql2";
 
-export async function POST() {
+export async function POST(req: Request) {
     try {
-        const refreshToken = await getRefreshTokenFromCookie();
+        const { refreshToken } = await req.json();
 
         if (!refreshToken) {
             return Response.json({ msg: "No refresh token" }, { status: 401 });
@@ -14,10 +16,14 @@ export async function POST() {
             return Response.json({ msg: "Invalid refresh token" }, { status: 401 });
         }
 
-        // In a more strict system, we might check if the user still exists in DB here.
-        // For now, we trust the valid signature of the long-lived token.
-        // We need to remove 'exp' and 'iat' from the old payload before signing new one
         const { iat, exp, ...userPayload } = payload as any;
+
+        // Verify token against DB
+        const [rows] = await db.query<RowDataPacket[]>("SELECT * FROM users WHERE id = ? AND refresh_token = ?", [userPayload.id, refreshToken]);
+
+        if (rows.length === 0) {
+            return Response.json({ msg: "Session expired or revoked" }, { status: 401 });
+        }
 
         const newAccessToken = generateAccessToken(userPayload);
 

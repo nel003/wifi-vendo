@@ -17,7 +17,16 @@ export function useAdminAuth() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Set up interceptor to attach token
+        // Init: Check if we have refresh token in LS but no user in store
+        const storedRefresh = localStorage.getItem("refreshToken");
+        if (storedRefresh && !adminUser) {
+            refreshSession();
+        }
+        setLoading(false);
+    }, []);
+
+    useEffect(() => {
+        // Interceptor to attach Access Token
         const requestIntercept = adminApi.interceptors.request.use(
             (config) => {
                 if (adminUser?.token) {
@@ -28,7 +37,7 @@ export function useAdminAuth() {
             (error) => Promise.reject(error)
         );
 
-        // Set up interceptor to handle 401s (token expiry)
+        // Interceptor to handle 401 and Refresh
         const responseIntercept = adminApi.interceptors.response.use(
             (response) => response,
             async (error) => {
@@ -36,24 +45,17 @@ export function useAdminAuth() {
                 if (error?.response?.status === 401 && !prevRequest?.sent) {
                     prevRequest.sent = true;
                     try {
-                        // Attempt to refresh
-                        const res = await axios.post("/api/admin/refresh");
-                        const newUnknownUser = res.data;
-                        const newAdminUser = {
-                            ...newUnknownUser,
-                            // Ensure we keep the structure consistent, assuming refresh returns full user + new token
-                        } as AdminUser;
-
-                        setAdminUser(newAdminUser);
-
-                        prevRequest.headers["Authorization"] = `Bearer ${newAdminUser.token}`;
-                        return adminApi(prevRequest);
+                        const success = await refreshSession();
+                        if (success && adminStore.getState().adminUser?.token) {
+                            prevRequest.headers["Authorization"] = `Bearer ${adminStore.getState().adminUser?.token}`;
+                            return adminApi(prevRequest);
+                        }
                     } catch (refreshError) {
-                        // Refresh failed (e.g. refresh token expired), logout
-                        setAdminUser(null as any);
-                        router.push("/admin/login");
-                        return Promise.reject(refreshError);
+                        // fall through to logout
                     }
+                    // Refresh failed
+                    logout();
+                    return Promise.reject(error);
                 }
                 return Promise.reject(error);
             }
@@ -66,23 +68,40 @@ export function useAdminAuth() {
     }, [adminUser, setAdminUser, router]);
 
     const login = async (user: AdminUser) => {
+        if (user.refreshToken) {
+            localStorage.setItem("refreshToken", user.refreshToken);
+        }
         setAdminUser(user);
     };
 
     const logout = async () => {
+        const refreshToken = localStorage.getItem("refreshToken");
         try {
-            await axios.post("/api/admin/logout");
+            await axios.post("/api/admin/logout", { refreshToken }); // Send token to revoke
         } catch (e) {
             console.error("Logout failed", e);
         }
+        localStorage.removeItem("refreshToken");
         setAdminUser(null as any);
         router.push("/admin/login");
     };
 
     const refreshSession = async (): Promise<boolean> => {
         try {
-            const res = await axios.post("/api/admin/refresh");
+            const refreshToken = localStorage.getItem("refreshToken");
+            if (!refreshToken) throw new Error("No refresh token");
+
+            const res = await axios.post("/api/admin/refresh", { refreshToken });
             const newAdminUser = res.data as AdminUser;
+
+            // Keep the refresh token if not returned (it usually isn't rotated on every access token refresh unless strict)
+            // But if it is returned, update it.
+            if (newAdminUser.refreshToken) {
+                localStorage.setItem("refreshToken", newAdminUser.refreshToken);
+            } else {
+                newAdminUser.refreshToken = refreshToken;
+            }
+
             setAdminUser(newAdminUser);
             return true;
         } catch (e) {
@@ -90,5 +109,5 @@ export function useAdminAuth() {
         }
     }
 
-    return { adminApi, login, logout, refreshSession };
+    return { adminApi, login, logout, refreshSession, loading };
 }

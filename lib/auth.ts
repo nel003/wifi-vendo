@@ -44,3 +44,24 @@ export const getRefreshTokenFromCookie = async () => {
     const cookieStore = await cookies();
     return cookieStore.get('refreshToken')?.value;
 }
+
+export const setAccessTokenCookie = async (token: string) => {
+    const cookieStore = await cookies();
+    cookieStore.set('accessToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 15 * 60, // 15 minutes
+        path: '/',
+    });
+};
+
+export const removeAccessTokenCookie = async () => {
+    const cookieStore = await cookies();
+    cookieStore.delete('accessToken');
+};
+
+export const getAccessTokenFromCookie = async () => {
+    const cookieStore = await cookies();
+    return cookieStore.get('accessToken')?.value;
+}
