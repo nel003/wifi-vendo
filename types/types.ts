@@ -8,37 +8,37 @@ export interface AdminUser {
 }
 
 export interface User {
-    id: number;
-    ip: string;
-    mac: string;
-    device: string;
-    expire_on: Date | null;
-    timeout: number;
-    paused: boolean;
+  id: number;
+  ip: string;
+  mac: string;
+  device: string;
+  expire_on: Date | null;
+  timeout: number;
+  paused: boolean;
 }
 
 export interface ErrorResponse {
-    response: {
-      data: {
-        msg: string;
-      };
+  response: {
+    data: {
+      msg: string;
     };
-  }
+  };
+}
 
 export interface Rate {
-    id: number;
-    name: string;
-    time: number;
-    price: number;
+  id: number;
+  name: string;
+  time: number;
+  price: number;
 }
 
 export interface Voucher {
-    id: number;
-    voucher: string;
-    time: number;
-    price: number;
-    used: boolean;
-    hidden: boolean;
+  id: number;
+  voucher: string;
+  time: number;
+  price: number;
+  used: boolean;
+  hidden: boolean;
 }
 
 export interface Clients {
@@ -69,4 +69,6 @@ export interface Dashboard {
   client_count: number
   c_earnings: number
   v_earnings: number
+  chart_data?: { date: string; sales: number }[];
+  recent_transactions?: { id: number; amount: number; by: string; created_at: string }[];
 }

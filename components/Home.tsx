@@ -271,15 +271,15 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-emerald-100">
             {/* Navbar */}
-            <nav className="flex items-center justify-between px-6 py-6 md:px-12 max-w-7xl mx-auto w-full">
+            {/* <nav className="flex items-center justify-between px-6 py-6 md:px-12 max-w-7xl mx-auto w-full">
                 <div className="flex items-center gap-3">
                     <div className="bg-emerald-500 rounded-lg p-1.5 shadow-lg shadow-emerald-500/20">
                         <WifiHigh className="text-white" size={20} />
                     </div>
-                    <span className="font-bold text-slate-700 tracking-tight text-lg uppercase">{appName}</span>
+                    <span className="font-bold text-slate-700 tracking-tight text-lg uppercase">openfi</span>
                 </div>
 
-            </nav>
+            </nav> */}
 
             {/* Main Content */}
             <main className="flex-1 flex items-center justify-center p-4">

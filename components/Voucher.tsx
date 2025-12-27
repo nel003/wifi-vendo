@@ -125,9 +125,9 @@ export default function Voucher() {
                                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                             </Button>
 
-                            <div className="pt-4 flex items-center justify-center gap-4 text-xs text-slate-500">
+                            {/* <div className="pt-4 flex items-center justify-center gap-4 text-xs text-slate-500">
                                 <span>Need help? <a href="#" className="text-slate-900 font-semibold hover:underline">Contact Support</a></span>
-                            </div>
+                            </div> */}
 
                             {process.env.NEXT_PUBLIC_HAS_COINSLOT === "true" && (
                                 <div className="text-center pt-2">
@@ -140,7 +140,7 @@ export default function Voucher() {
                                     }}>
                                         <DrawerTrigger asChild>
                                             <button className="text-xs text-slate-400 hover:text-slate-600 transition-colors font-medium">
-                                                Or pay with <span className="underline decoration-slate-300 underline-offset-2">Cash / Coin</span>
+                                                Or pay with <span className="underline decoration-slate-300 underline-offset-2 font-bold">Coins</span>
                                             </button>
                                         </DrawerTrigger>
                                         <DrawerContent className="w-full grid place-items-center">

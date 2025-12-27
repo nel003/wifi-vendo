@@ -42,13 +42,17 @@ export async function POST(req: Request) {
             WHERE mac = ?`, [vouch[0].time, vouch[0].time, info.mac]);
 
         await conn.execute('UPDATE vouchers SET used = 1 WHERE voucher = ?;', [voucher]);
+
+        // Record transaction
+        await conn.execute('INSERT INTO transactions (amount, `by`) VALUES (?, ?);', [vouch[0].price, info.mac]);
+
         await conn.commit();
 
         const [final] = await db.execute<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [info.mac]);
 
         const expiryDate = moment(final[0].expire_on);
         const timeout = expiryDate.diff(moment(), 'seconds');
-        
+
         execSync(`ipset add allowed_macs ${info.mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`);
 
         return Response.json({ msg: 'success', user: { ...final[0], timeout } }, { status: 200 });
