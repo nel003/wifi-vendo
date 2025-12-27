@@ -69,6 +69,4 @@ export interface Dashboard {
   client_count: number
   c_earnings: number
   v_earnings: number
-  chart_data?: { date: string; sales: number }[];
-  recent_transactions?: { id: number; amount: number; by: string; created_at: string }[];
 }

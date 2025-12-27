@@ -58,24 +58,8 @@ export async function GET(req: Request) {
               (SELECT SUM(amount) AS c_earnings FROM transactions) c;
         `);
 
-    // Chart Data: Last 7 days sales
-    const [chartData] = await db.query<RowDataPacket[]>(`
-            SELECT DATE(created_at) as date, SUM(amount) as sales 
-            FROM transactions 
-            WHERE created_at >= DATE(NOW()) - INTERVAL 7 DAY 
-            GROUP BY DATE(created_at) 
-            ORDER BY date ASC;
-        `);
 
-    // Recent Transactions
-    const [recentTrans] = await db.query<RowDataPacket[]>(`
-            SELECT id, amount, \`by\`, created_at 
-            FROM transactions 
-            ORDER BY created_at DESC 
-            LIMIT 5;
-        `);
-
-    return Response.json({ ramUsage, cpuUsage, storageUsage, ...rows[0], chart_data: chartData, recent_transactions: recentTrans }, { status: 200 });
+    return Response.json({ ramUsage, cpuUsage, storageUsage, ...rows[0] }, { status: 200 });
   } catch (error) {
     console.log(error);
     return Response.json({ msg: "Something went wrong!" }, { status: 500 });
