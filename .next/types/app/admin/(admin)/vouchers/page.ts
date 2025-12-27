@@ -1,4 +1,4 @@
-// File: C:\Users\bispl\OneDrive\Desktop\arns\wifi-vendo\app\admin\(admin)\vouchers\page.tsx
+// File: /root/wifi-vendo/app/admin/(admin)/vouchers/page.tsx
 import * as entry from '../../../../../../app/admin/(admin)/vouchers/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
