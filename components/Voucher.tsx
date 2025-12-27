@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { useState } from "react";
 import { userStore } from "@/store/user";
+import { useSettingsStore } from "@/store/settings-store";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast"
 import { ErrorResponse } from "@/types/types";
@@ -23,6 +24,7 @@ import { Input } from "@/components/ui/input";
 
 export default function Voucher() {
     const setUser = userStore(store => store.setUser);
+    const { hasCoinslot } = useSettingsStore();
     const [voucher, setVoucher] = useState("");
     const { toast } = useToast();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -129,7 +131,7 @@ export default function Voucher() {
                                 <span>Need help? <a href="#" className="text-slate-900 font-semibold hover:underline">Contact Support</a></span>
                             </div> */}
 
-                            {process.env.NEXT_PUBLIC_HAS_COINSLOT === "true" && (
+                            {hasCoinslot && (
                                 <div className="text-center pt-2">
                                     <Drawer open={isDrawerOpen} onOpenChange={(v) => {
                                         if (waitingForCoin) {

@@ -1,10 +1,1 @@
-{
-  "/api/admin/login/route": "app/api/admin/login/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/admin/login/page": "app/admin/login/page.js",
-  "/admin/(admin)/page": "app/admin/(admin)/page.js",
-  "/admin/(admin)/vouchers/page": "app/admin/(admin)/vouchers/page.js",
-  "/admin/(admin)/transactions/page": "app/admin/(admin)/transactions/page.js",
-  "/admin/(admin)/rates/page": "app/admin/(admin)/rates/page.js"
-}
+{}
