@@ -3,18 +3,23 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Skeleton } from "@/components/ui/skeleton"
 import { userStore } from "@/store/user";
+import { useSettingsStore } from "@/store/settings-store";
 
 export default function Userlayout({
     children,
-  }: Readonly<{
+}: Readonly<{
     children: React.ReactNode;
-  }>) {
+}>) {
     const setUser = userStore(store => store.setUser);
+    const fetchSettings = useSettingsStore(store => store.fetchSettings);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function req() {
             try {
+                // Fetch settings in parallel
+                fetchSettings();
+
                 const res = await axios.get("/api/login", {
                     headers: {
                         "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -31,7 +36,7 @@ export default function Userlayout({
         }
 
         req();
-    }, [setUser]);
+    }, [setUser, fetchSettings]);
 
     return loading ? (
         <div className="grid place-items-center h-screen w-screen">
@@ -45,7 +50,7 @@ export default function Userlayout({
                     <Skeleton className="w-2 h-2 rounded-full my-auto" />
                     <Skeleton className="w-[7rem] h-[3rem] rounded-sm" />
                 </div>
-                <Skeleton className="w-[7rem] h-[2.5rem] rounded-sm mt-3"/>
+                <Skeleton className="w-[7rem] h-[2.5rem] rounded-sm mt-3" />
             </div>
         </div>
     ) : (

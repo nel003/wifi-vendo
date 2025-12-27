@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-self.__REACT_LOADABLE_MANIFEST="{}"
-=======
-self.__REACT_LOADABLE_MANIFEST="{}";
->>>>>>> 1c7c35339ab961c2dbd6f42ed069a4613ea06939
+self.__REACT_LOADABLE_MANIFEST="{\"node_modules\\\\next\\\\dist\\\\client\\\\components\\\\react-dev-overlay\\\\internal\\\\helpers\\\\use-websocket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts\":{\"id\":\"node_modules\\\\next\\\\dist\\\\client\\\\components\\\\react-dev-overlay\\\\internal\\\\helpers\\\\use-websocket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js\"]}}"
