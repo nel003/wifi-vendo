@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button"
 import { useState } from "react";
 import { userStore } from "@/store/user";
-import { useSettingsStore } from "@/store/settings-store";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast"
 import { ErrorResponse } from "@/types/types";
@@ -21,14 +20,16 @@ import InsertCoin from "./InsertCoin";
 import captiveCheck from "@/utils/captiveCheck";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useSettingsStore } from "@/store/settings-store";
 
 export default function Voucher() {
     const setUser = userStore(store => store.setUser);
-    const { hasCoinslot } = useSettingsStore();
     const [voucher, setVoucher] = useState("");
     const { toast } = useToast();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [waitingForCoin, setWaitingForCoin] = useState(false);
+
+    const { hasCoinslot } = useSettingsStore();
 
     async function redeem(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         const target = e.target as HTMLButtonElement;
