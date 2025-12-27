@@ -1,13 +1,9 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/api/admin/refresh/route": "app/api/admin/refresh/route.js",
-  "/api/admin/rates/route": "app/api/admin/rates/route.js",
   "/api/admin/dashboard/route": "app/api/admin/dashboard/route.js",
-  "/api/admin/transactions/route": "app/api/admin/transactions/route.js",
-  "/api/admin/vouchers/route": "app/api/admin/vouchers/route.js",
-  "/admin/(admin)/rates/page": "app/admin/(admin)/rates/page.js",
-  "/admin/(admin)/page": "app/admin/(admin)/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/admin/rates/route": "app/api/admin/rates/route.js",
   "/admin/(admin)/vouchers/page": "app/admin/(admin)/vouchers/page.js",
-  "/admin/(admin)/transactions/page": "app/admin/(admin)/transactions/page.js"
+  "/admin/(admin)/page": "app/admin/(admin)/page.js",
+  "/admin/(admin)/rates/page": "app/admin/(admin)/rates/page.js"
 }

@@ -54,7 +54,7 @@ export async function GET(req: Request) {
               (SELECT COUNT(id) FROM rates) AS rate_count,
               (SELECT COUNT(id) FROM clients) AS client_count
           FROM 
-              (SELECT COUNT(id) FROM voucher_count, SUM(price) AS v_earnings FROM vouchers) v,
+              (SELECT COUNT(id) AS voucher_count, SUM(price) AS v_earnings FROM vouchers) v,
               (SELECT SUM(amount) AS c_earnings FROM transactions) c;
         `);
 
