@@ -384,8 +384,9 @@ iptables -t nat -C POSTROUTING -o "$WAN_IFACE" -j MASQUERADE 2>/dev/null \
   || iptables -t nat -A POSTROUTING -o "$WAN_IFACE" -j MASQUERADE
 
 # Disable hotspot sharing by setting TTL to 1 on LAN outbound traffic
-iptables -t mangle -A POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1
-
+iptables -t mangle -C POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1 2>/dev/null \
+  || iptables -t mangle -A POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1
+  
 # ---------------------------
 # SYSCTL (SAFE VALUES)
 # ---------------------------
