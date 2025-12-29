@@ -501,7 +501,7 @@ echo "🛢️ Creating MySQL database: $DB_NAME"
 mysql -u root <<EOF
 CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`;
 EOF
-mysql -u root -p wifi < tables.sql
+mysql -u root wifi < tables.sql
 
 echo "✅ Database '$DB_NAME' is ready"
 
