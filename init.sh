@@ -1,35 +1,68 @@
 #!/bin/bash
+set -e
 
-# Load environment variables from .env.local
-if [ -f ".env.local" ]; then
-    export $(grep -v '^#' .env.local | xargs)
+# ---------------------------------
+# Resolve .env.local from script dir
+# ---------------------------------
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/.env.local"
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "❌ ENV file not found: $ENV_FILE"
+  exit 1
 fi
 
-# MySQL credentials
-DB_HOST="$DB_HOST"
-DB_USER="$DB_USER"
-DB_PASSWORD="$DB_PASSWORD"
-DB_NAME="$DB_NAME"
+# ---------------------------------
+# Load environment variables
+# ---------------------------------
+export $(grep -v '^#' "$ENV_FILE" | xargs)
 
-# Query the database
-query="SELECT mac, expire_on, paused FROM clients WHERE expire_on >= NOW();"
-result=$(mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" -D "$DB_NAME" -sN -e "$query")
+# ---------------------------------
+# Validate required variables
+# ---------------------------------
+: "${DB_HOST:?Missing DB_HOST}"
+: "${DB_USER:?Missing DB_USER}"
+: "${DB_PASSWORD:?Missing DB_PASSWORD}"
+: "${DB_NAME:?Missing DB_NAME}"
 
-# Iterate over each row
+# ---------------------------------
+# Query database
+# ---------------------------------
+QUERY="
+SELECT mac, expire_on, paused
+FROM clients
+WHERE expire_on >= NOW();
+"
+
+RESULT=$(mysql \
+  -h "$DB_HOST" \
+  -u "$DB_USER" \
+  -p"$DB_PASSWORD" \
+  -D "$DB_NAME" \
+  -sN -e "$QUERY"
+)
+
+# ---------------------------------
+# Process clients
+# ---------------------------------
+NOW_TIMESTAMP=$(date +%s)
+
 while IFS=$'\t' read -r mac expire_on paused; do
-    if [ "$paused" -eq 0 ]; then
-        # Convert timestamps to seconds difference
-        expire_timestamp=$(date -d "$expire_on" +%s)
-        now_timestamp=$(date +%s)
-        timeout=$((expire_timestamp - now_timestamp))
+  [[ -z "$mac" ]] && continue
+  [[ "$paused" -ne 0 ]] && continue
 
-        # Limit timeout to 2147483 if it exceeds
-        [ "$timeout" -ge 2147483 ] && timeout=2147483
-        echo "$timeout"
+  EXPIRE_TIMESTAMP=$(date -d "$expire_on" +%s)
+  TIMEOUT=$((EXPIRE_TIMESTAMP - NOW_TIMESTAMP))
 
-        # Execute ipset command
-        ipset add allowed_macs "$mac" timeout "$timeout" -exist
-    fi
-done <<< "$result"
+  # Skip expired
+  [[ "$TIMEOUT" -le 0 ]] && continue
 
-echo "Processed clients."
+  # Kernel ipset max timeout guard
+  [[ "$TIMEOUT" -gt 2147483 ]] && TIMEOUT=2147483
+
+  echo "Allowing $mac for $TIMEOUT seconds"
+
+  ipset add allowed_macs "$mac" timeout "$TIMEOUT" -exist
+done <<< "$RESULT"
+
+echo "✅ Processed clients successfully"
