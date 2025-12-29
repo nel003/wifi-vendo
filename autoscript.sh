@@ -462,7 +462,7 @@ EOF
 echo "✅ Created nginx site config: $NGINX_SITE"
 
 ln -sf /etc/nginx/sites-available/nodeapp /etc/nginx/sites-enabled/
-rm /etc/nginx/sites-enabled/default
+rm -f /etc/nginx/sites-enabled/default
 
 nginx -t
 systemctl restart nginx
@@ -540,3 +540,4 @@ TIMEOUT=30
 EOF
 
 echo "✅ .env.local created successfully"
+echo "SETUP DONE, reboot is required."
