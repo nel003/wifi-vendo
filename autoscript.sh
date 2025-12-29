@@ -282,7 +282,7 @@ echo "✅ Created systemd override: $OVERRIDE_FILE"
 systemctl daemon-reload
 systemctl restart dnsmasq
 systemctl enable dnsmasq
-systemctl status dnsmasq
+systemctl is-active dnsmasq && echo "✅ dnsmasq is running"
 
 echo "🚀 dnsmasq restarted with network-online dependency"
 
