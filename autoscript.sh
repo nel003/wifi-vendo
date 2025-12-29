@@ -396,7 +396,7 @@ sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=43200
 sysctl -w net.netfilter.nf_conntrack_udp_timeout=30
 sysctl -w net.ipv4.tcp_tw_reuse=1
 
-bash /root/wifi-vendo/init.sh
+#bash /root/wifi-vendo/init.sh
 
 echo "✅ Network shaping applied successfully"
 EOF
