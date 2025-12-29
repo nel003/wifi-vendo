@@ -459,7 +459,7 @@ EOF
 
 echo "✅ Created nginx site config: $NGINX_SITE"
 
-ln -s /etc/nginx/sites-available/nodeapp /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/nodeapp /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/default
 
 nginx -t
