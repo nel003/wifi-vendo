@@ -38,10 +38,12 @@ if [[ -z "$DOMAIN" ]]; then
   exit 1
 fi
 
-read -s -p "🔐 Enter APP SECRET: " SECRET
-echo
-[[ -z "$SECRET" ]] && { echo "❌ SECRET required"; exit 1; }
+# -----------------------------
+# Generate strong APP SECRET
+# -----------------------------
+SECRET=$(openssl rand -hex 32)
 
+echo "🔐 Generated APP SECRET"
 
 # -----------------------------
 # Detect WAN Interface
