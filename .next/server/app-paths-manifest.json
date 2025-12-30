@@ -1,7 +1,0 @@
-{
-  "/api/admin/refresh/route": "app/api/admin/refresh/route.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/api/settings/route": "app/api/settings/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/admin/(admin)/settings/page": "app/admin/(admin)/settings/page.js"
-}
