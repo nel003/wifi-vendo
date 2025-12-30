@@ -70,4 +70,6 @@ export interface Dashboard {
   client_count: number
   c_earnings: number
   v_earnings: number
+  ramText: string
+  storageText: string
 }

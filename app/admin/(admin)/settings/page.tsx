@@ -9,7 +9,7 @@ import { useAdminAuth } from "@/hooks/use-admin-auth"
 import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
 import { adminStore } from "@/store/user";
-import { Loader2 } from "lucide-react"
+import { Loader2, Users, Lock, Settings } from "lucide-react"
 import axios from "axios";
 
 export default function SettingsPage() {
@@ -30,7 +30,7 @@ export default function SettingsPage() {
 
     // App Settings State
     const [appName, setAppName] = useState("");
-    const [appVersion, setAppVersion] = useState("");
+    const [coinslotTimeout, setCoinslotTimeout] = useState("");
     const [hasCoinslot, setHasCoinslot] = useState(false);
     const [settingsLoading, setSettingsLoading] = useState(true);
 
@@ -38,7 +38,7 @@ export default function SettingsPage() {
         // Fetch public settings to populate form
         axios.get("/api/settings").then(res => {
             setAppName(res.data.app_name);
-            setAppVersion(res.data.app_version);
+            setCoinslotTimeout(String(res.data.coinslot_timeout || "120"));
             setHasCoinslot(res.data.has_coinslot);
             setSettingsLoading(false);
         }).catch(err => {
@@ -53,7 +53,7 @@ export default function SettingsPage() {
         try {
             await adminApi.post("/api/admin/settings/update", {
                 app_name: appName,
-                app_version: appVersion,
+                coinslot_timeout: Number(coinslotTimeout),
                 has_coinslot: hasCoinslot
             });
             toast({
@@ -150,141 +150,158 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="w-full max-w-2xl mx-auto p-4 space-y-6">
-            <h1 className="text-2xl font-bold mb-6">Settings</h1>
+        <div className="flex flex-col gap-6 p-4 md:p-8 pt-6 w-full h-full">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900">Settings</h2>
 
-            {/* Profile Settings */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Profile Information</CardTitle>
-                    <CardDescription>
-                        Update your account details.
-                    </CardDescription>
-                </CardHeader>
-                <form onSubmit={handleProfileUpdate}>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Name</Label>
-                            <Input
-                                id="name"
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
+            <div className="grid gap-6 md:grid-cols-2">
+                {/* Profile Settings */}
+                <Card className="shadow-sm border-slate-100 hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-start justify-between pb-2">
+                        <div className="space-y-1">
+                            <CardTitle className="text-lg font-semibold text-slate-900">Profile Information</CardTitle>
+                            <CardDescription>Update your account details.</CardDescription>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="username">Username</Label>
-                            <Input
-                                id="username"
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                required
-                            />
+                        <div className="bg-blue-100 p-2 rounded-lg">
+                            <Users className="h-5 w-5 text-blue-600" />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Button type="submit" disabled={loading}>
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Changes
-                        </Button>
-                    </CardFooter>
-                </form>
-            </Card>
+                    </CardHeader>
+                    <form onSubmit={handleProfileUpdate}>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Name</Label>
+                                <Input
+                                    id="name"
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="username">Username</Label>
+                                <Input
+                                    id="username"
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Changes
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Card>
 
-            {/* Password Settings */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Change Password</CardTitle>
-                    <CardDescription>
-                        Update your administrator password here.
-                    </CardDescription>
-                </CardHeader>
-                <form onSubmit={handleChangePassword}>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="old-password">Current Password</Label>
-                            <Input
-                                id="old-password"
-                                type="password"
-                                value={oldPassword}
-                                onChange={(e) => setOldPassword(e.target.value)}
-                                required
-                            />
+                {/* Password Settings */}
+                <Card className="shadow-sm border-slate-100 hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-start justify-between pb-2">
+                        <div className="space-y-1">
+                            <CardTitle className="text-lg font-semibold text-slate-900">Change Password</CardTitle>
+                            <CardDescription>Update your administrator password.</CardDescription>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="new-password">New Password</Label>
-                            <Input
-                                id="new-password"
-                                type="password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                required
-                            />
+                        <div className="bg-amber-100 p-2 rounded-lg">
+                            <Lock className="h-5 w-5 text-amber-600" />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="confirm-password">Confirm New Password</Label>
-                            <Input
-                                id="confirm-password"
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Button type="submit" disabled={loading}>
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Update Password
-                        </Button>
-                    </CardFooter>
-                </form>
-            </Card>
+                    </CardHeader>
+                    <form onSubmit={handleChangePassword}>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="old-password">Current Password</Label>
+                                <Input
+                                    id="old-password"
+                                    type="password"
+                                    value={oldPassword}
+                                    onChange={(e) => setOldPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="new-password">New Password</Label>
+                                <Input
+                                    id="new-password"
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="confirm-password">Confirm New Password</Label>
+                                <Input
+                                    id="confirm-password"
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Update Password
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Card>
+            </div>
+
             {/* App Configuration */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>App Configuration</CardTitle>
-                    <CardDescription>Manage global application settings</CardDescription>
+            <Card className="shadow-sm border-slate-100 hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-start justify-between pb-2">
+                    <div className="space-y-1">
+                        <CardTitle className="text-lg font-semibold text-slate-900">App Configuration</CardTitle>
+                        <CardDescription>Manage global application settings.</CardDescription>
+                    </div>
+                    <div className="bg-slate-100 p-2 rounded-lg">
+                        <Settings className="h-5 w-5 text-slate-600" />
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={updateSettings} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="appName">App Name</Label>
-                            <Input
-                                id="appName"
-                                value={appName}
-                                onChange={(e) => setAppName(e.target.value)}
-                                placeholder="WiFi Vendo"
-                                disabled={settingsLoading}
-                            />
+                    <form onSubmit={updateSettings} className="space-y-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="appName">App Name</Label>
+                                <Input
+                                    id="appName"
+                                    value={appName}
+                                    onChange={(e) => setAppName(e.target.value)}
+                                    placeholder="WiFi Vendo"
+                                    disabled={settingsLoading}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="coinslotTimeout">Coinslot Timeout (seconds)</Label>
+                                <Input
+                                    id="coinslotTimeout"
+                                    type="number"
+                                    value={coinslotTimeout}
+                                    onChange={(e) => setCoinslotTimeout(e.target.value)}
+                                    placeholder="120"
+                                    disabled={settingsLoading}
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="appVersion">Version</Label>
-                            <Input
-                                id="appVersion"
-                                value={appVersion}
-                                onChange={(e) => setAppVersion(e.target.value)}
-                                placeholder="2.0"
-                                disabled={settingsLoading}
-                            />
-                        </div>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="flex items-center justify-between rounded-lg border p-4 bg-slate-50/50">
                             <div className="space-y-0.5">
-                                <Label className="text-base">Coin Slot</Label>
+                                <Label className="text-base font-medium">Coin Slot</Label>
                                 <div className="text-sm text-muted-foreground">
-                                    Enable or disable coin slot functionality
+                                    Enable or disable physical coin slot functionality
                                 </div>
                             </div>
                             <Switch
@@ -293,10 +310,12 @@ export default function SettingsPage() {
                                 disabled={settingsLoading}
                             />
                         </div>
-                        <Button type="submit" disabled={loading || settingsLoading}>
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Configuration
-                        </Button>
+                        <div className="flex justify-end">
+                            <Button type="submit" disabled={loading || settingsLoading} className="w-full sm:w-auto">
+                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Configuration
+                            </Button>
+                        </div>
                     </form>
                 </CardContent>
             </Card>

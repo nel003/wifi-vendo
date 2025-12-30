@@ -14,11 +14,13 @@ export async function GET() {
         const appName = settings.app_name || process.env.NEXT_PUBLIC_APP_NAME || "WiFi Vendo";
         const appVersion = settings.app_version || process.env.NEXT_PUBLIC_VERSION || "2.0";
         const hasCoinslot = settings.has_coinslot !== undefined ? settings.has_coinslot === 'true' : (process.env.NEXT_PUBLIC_HAS_COINSLOT === 'true');
+        const coinslotTimeout = settings.coinslot_timeout ? parseInt(settings.coinslot_timeout) : parseInt(process.env.TIMEOUT || "120");
 
         return NextResponse.json({
             app_name: appName,
             app_version: appVersion,
-            has_coinslot: hasCoinslot
+            has_coinslot: hasCoinslot,
+            coinslot_timeout: coinslotTimeout
         }, { status: 200 });
     } catch (error) {
         console.error("Error fetching settings:", error);

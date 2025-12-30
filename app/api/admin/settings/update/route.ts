@@ -25,14 +25,14 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { app_name, app_version, has_coinslot } = body;
+        const { app_name, coinslot_timeout, has_coinslot } = body;
 
         // Update each setting
         // Note: pool.query is generally preferred over execute for simple queries in mysql2/promise depending on the pool type, 
         // but pool.execute works if prepared statements are supported. 
         // lib/database.ts returns a Pool.
         await pool.query('INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?', ['app_name', app_name || "", app_name || ""]);
-        await pool.query('INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?', ['app_version', app_version || "", app_version || ""]);
+        await pool.query('INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?', ['coinslot_timeout', String(coinslot_timeout || "120"), String(coinslot_timeout || "120")]);
         await pool.query('INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?', ['has_coinslot', String(has_coinslot), String(has_coinslot)]);
 
         return NextResponse.json({ msg: "Settings updated successfully" }, { status: 200 });

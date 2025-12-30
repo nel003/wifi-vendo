@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME || "WiFi Vendo",
+  title: "WiFi Vendo",
   description: "",
 };
 
@@ -31,7 +31,7 @@ export default function RootLayout({
         <div>
           {children}
         </div>
-        <Toaster/>
+        <Toaster />
       </body>
     </html>
   );

@@ -13,7 +13,18 @@ let isCSOpen = false;
 let isPending = false;
 
 const secret = "secret";
-const max = +(process.env.TIMEOUT || "0");
+// Replace static max with a function or fetch dynamically
+async function getMaxTimeout() {
+  try {
+    const [rows] = await db.query<RowDataPacket[]>("SELECT value FROM settings WHERE `key` = 'coinslot_timeout'");
+    if (rows.length > 0 && rows[0].value) {
+      return parseInt(rows[0].value);
+    }
+  } catch (error) {
+    console.error("Error fetching coinslot_timeout:", error);
+  }
+  return +(process.env.TIMEOUT || "120"); // Default to 120 if not found
+}
 
 let serialInitialized = false;
 
@@ -35,11 +46,11 @@ async function stop(server: import("ws").WebSocketServer, mac: string) {
   }
   console.log("MAC: ", mac)
   let timeTotal = 0;
-  
+
   server.clients.forEach(c => {
-    c.send(JSON.stringify({from: "coinslot", for: insertingMac, value: "isClose"})); 
-  }); 
-  serialPort.write(JSON.stringify({type: "cmd", secret, value: "close"})+"\n");
+    c.send(JSON.stringify({ from: "coinslot", for: insertingMac, value: "isClose" }));
+  });
+  serialPort.write(JSON.stringify({ type: "cmd", secret, value: "close" }) + "\n");
 
   if (totalCoins > 0 && insertingMac?.trim() != "") {
     const [rows] = await db.query<RowDataPacket[]>("SELECT * FROM rates ORDER BY price DESC");
@@ -49,23 +60,23 @@ async function stop(server: import("ws").WebSocketServer, mac: string) {
 
     for (const r of rates) {
       const price = Number(r.price);
-      
+
       if (isNaN(price) || price <= 0) {
         console.log(`Skipping invalid rate:`, r);
         continue;
       }
-    
+
       if (totalCoins < price) {
         continue;
       }
-    
-      const ans = Math.floor(totalCoins / price); 
-      totalCoins %= price; 
-    
+
+      const ans = Math.floor(totalCoins / price);
+      totalCoins %= price;
+
       if (ans < 1) {
         continue;
       }
-    
+
       timeTotal += ans * r.time;
     }
 
@@ -76,13 +87,13 @@ async function stop(server: import("ws").WebSocketServer, mac: string) {
 
     await db.execute(`
       INSERT INTO transactions VALUES(0, ?, ?)`, [coinsCopy, mac]);
-  
+
     const [final] = await db.execute<RowDataPacket[]>('SELECT * FROM clients WHERE mac = ?;', [mac]);
-  
+
     const expiryDate = moment(final[0].expire_on);
     const timeout = expiryDate.diff(moment(), 'seconds');
-    
-    execSync(`ipset add allowed_macs ${mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`); 
+
+    execSync(`ipset add allowed_macs ${mac} timeout ${timeout >= 2147483 ? 2147483 : timeout} -exist`);
   }
 
   reset();
@@ -111,38 +122,39 @@ export async function SOCKET(
 
   if (serialPort && !serialInitialized) {
     serialInitialized = true;
-    
-    serialPort.on('data', (data: Buffer) => {
+
+    serialPort.on('data', async (data: Buffer) => {
       try {
         const json = JSON.parse(data.toString());
-      
+
         if (json.type == "init") {
-          serialPort.write(JSON.stringify({type: "status", value: "ok"})+"\n");
+          serialPort.write(JSON.stringify({ type: "status", value: "ok" }) + "\n");
         }
 
         if (json.type == "notify") {
           isPending = true;
+          const max = await getMaxTimeout();
           seconds = max * 1000;
           server.clients.forEach(c => {
-              c.send(JSON.stringify({from: "notify", for: insertingMac, value: "ok"}));
+            c.send(JSON.stringify({ from: "notify", for: insertingMac, value: "ok" }));
           });
-          serialPort.write(JSON.stringify({type: "status", value: "ok"})+"\n");
+          serialPort.write(JSON.stringify({ type: "status", value: "ok" }) + "\n");
         }
 
         if (json.type == "res") {
           server.clients.forEach(c => {
-            c.send(JSON.stringify({from: "coinslot", for: insertingMac, value: json.value == "open" ? "isOpen" : "isClose"})); 
-          }); 
+            c.send(JSON.stringify({ from: "coinslot", for: insertingMac, value: json.value == "open" ? "isOpen" : "isClose" }));
+          });
           isCSOpen = json.value == "open";
         }
-    
+
         if (json.type == "coin") {
           isPending = false;
           totalCoins += +json.value;
           setTimeout(() => {
-              server.clients.forEach(c => {
-                  c.send(JSON.stringify({from: "totalcoin", value: totalCoins, for: insertingMac}));
-              });
+            server.clients.forEach(c => {
+              c.send(JSON.stringify({ from: "totalcoin", value: totalCoins, for: insertingMac }));
+            });
           }, 700);
         }
         console.log(json)
@@ -150,30 +162,31 @@ export async function SOCKET(
       } catch (error) {
         console.log(error)
       }
-      
+
     })
   }
 
-  client.on("message", (message) => {
+  client.on("message", async (message) => {
     const data = JSON.parse(message.toString());
 
-    if(data.from == "user") {
+    if (data.from == "user") {
       if (!info.mac || info.mac.trim() === "" || !ip) {
         client.close();
       }
       console.log(ip);
 
-      if(info.mac && data.value == "start") {
-        if(!timer || !insertingMac) {
+      if (info.mac && data.value == "start") {
+        if (!timer || !insertingMac) {
           insertingMac = info.mac;
-          serialPort.write(JSON.stringify({type: "cmd", value: "open"})+"\n");
+          serialPort.write(JSON.stringify({ type: "cmd", value: "open" }) + "\n");
+          const max = await getMaxTimeout();
           seconds = max * 1000;
 
           timer = setInterval(() => {
             if (!isCSOpen) {
               reset();
             }
-            client.send(JSON.stringify({from: "timer", for: insertingMac, timeleft: (seconds / (max * 1000)) * 100 - 10}));
+            client.send(JSON.stringify({ from: "timer", for: insertingMac, timeleft: (seconds / (max * 1000)) * 100 - 10 }));
             if (seconds <= 0) {
               stop(server, insertingMac || "");
             }
@@ -181,12 +194,12 @@ export async function SOCKET(
             console.log(seconds)
           }, 1000);
         } else {
-          client.send(JSON.stringify({from: "server", value: "inuse"}));
+          client.send(JSON.stringify({ from: "server", value: "inuse" }));
         }
       }
 
-      if(data.value == "stop") {
-        if(timer && insertingMac == info.mac) {
+      if (data.value == "stop") {
+        if (timer && insertingMac == info.mac) {
           stop(server, insertingMac || "");
         }
       }
