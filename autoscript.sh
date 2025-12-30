@@ -540,4 +540,42 @@ TIMEOUT=30
 EOF
 
 echo "✅ .env.local created successfully"
+
+echo "🔁 Setting up daily reboot at 02:30 AM..."
+
+# -----------------------------
+# Create reboot service
+# -----------------------------
+cat << 'EOF' > /etc/systemd/system/daily-reboot.service
+[Unit]
+Description=Daily system reboot
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/reboot
+EOF
+
+# -----------------------------
+# Create reboot timer
+# -----------------------------
+cat << 'EOF' > /etc/systemd/system/daily-reboot.timer
+[Unit]
+Description=Daily reboot at 02:30 AM
+
+[Timer]
+OnCalendar=*-*-* 02:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+# -----------------------------
+# Reload & enable
+# -----------------------------
+systemctl daemon-reexec
+systemctl daemon-reload
+systemctl enable --now daily-reboot.timer
+
+echo "✅ Daily reboot timer installed and enabled"
 echo "SETUP DONE, reboot is required."
