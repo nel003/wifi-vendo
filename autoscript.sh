@@ -319,7 +319,7 @@ npm -v
 TARGET="/usr/local/sbin/setup-network.sh"
 mkdir -p /usr/local/sbin
 
-cat <<'EOF' > "$TARGET"
+cat <<EOF > "$TARGET"
 #!/bin/bash
 # setup-network.sh — SAFE CAKE + IFB + firewall
 set -e
