@@ -53,7 +53,13 @@ export default function Page() {
 
     const init = useCallback(async () => {
         try {
-            const res = await adminApi.get('/api/admin/clients?filter=' + filter);
+            const res = await adminApi.get('/api/admin/clients?filter=' + filter, {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             setClients(res.data)
         } catch (error) {
             console.error(error)

@@ -38,7 +38,13 @@ export default function SettingsPage() {
 
     useEffect(() => {
         // Fetch public settings to populate form
-        axios.get("/api/settings").then(res => {
+        axios.get("/api/settings", {
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        }).then(res => {
             setAppName(res.data.app_name);
             setCoinslotTimeout(String(res.data.coinslot_timeout || "120"));
             setHasCoinslot(res.data.has_coinslot);

@@ -26,7 +26,13 @@ function Transactions() {
 
     const init = useCallback(async () => {
         try {
-            const res = await adminApi.get('/api/admin/transactions');
+            const res = await adminApi.get('/api/admin/transactions', {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             setTransactions(res.data);
         } catch (error) {
             console.error(error)

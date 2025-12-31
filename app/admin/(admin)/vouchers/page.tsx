@@ -72,7 +72,13 @@ export default function Page() {
 
     const initVouchers = useCallback(async () => {
         try {
-            const res = await adminApi.get('/api/admin/vouchers');
+            const res = await adminApi.get('/api/admin/vouchers', {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             const newArr = res.data.map((v: Voucher) => ({ ...v, hidden: true }));
             setVouchers(newArr)
         } catch (error) {

@@ -49,7 +49,13 @@ export default function Page() {
 
     const init = useCallback(async () => {
         try {
-            const res = await adminApi.get('/api/admin/rates');
+            const res = await adminApi.get('/api/admin/rates', {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             setRates(res.data.sort((a: Rate, b: Rate) => a.price - b.price));
         } catch (error) {
             console.error(error)

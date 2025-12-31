@@ -14,7 +14,13 @@ export default function Page() {
 
     const init = useCallback(async () => {
         try {
-            const res = await adminApi.get("api/admin/dashboard");
+            const res = await adminApi.get("api/admin/dashboard", {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             setDashItem(res.data);
         } catch (error) {
             toast({
