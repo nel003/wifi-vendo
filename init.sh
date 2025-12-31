@@ -1,25 +1,16 @@
 #!/bin/bash
 
-# ---------------------------------
-# Config
-# ---------------------------------
 RETRY_DELAY=5
 
-# ---------------------------------
-# Resolve .env.local from script dir
-# ---------------------------------
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ENV_FILE="$SCRIPT_DIR/.env.local"
-
-# ---------------------------------
-# Main loop
-# ---------------------------------
 while true; do
   ERROR=0
 
   # ---------------------------------
-  # Load environment
+  # Resolve .env.local from script dir
   # ---------------------------------
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  ENV_FILE="$SCRIPT_DIR/.env.local"
+
   if [[ ! -f "$ENV_FILE" ]]; then
     echo "❌ ENV file not found: $ENV_FILE"
     ERROR=1
@@ -28,13 +19,13 @@ while true; do
   fi
 
   # ---------------------------------
-  # Validate variables
+  # Validate required variables
   # ---------------------------------
   for v in DB_HOST DB_USER DB_PASSWORD DB_NAME; do
-    [[ -z "${!v}" ]] && {
+    if [[ -z "${!v}" ]]; then
       echo "❌ Missing env: $v"
       ERROR=1
-    }
+    fi
   done
 
   # ---------------------------------
@@ -42,9 +33,9 @@ while true; do
   # ---------------------------------
   if [[ "$ERROR" -eq 0 ]]; then
     QUERY="
-    SELECT mac, expire_on, paused
-    FROM clients
-    WHERE expire_on >= NOW();
+      SELECT mac, expire_on, paused
+      FROM clients
+      WHERE expire_on >= NOW();
     "
 
     RESULT=$(mysql \
@@ -66,25 +57,31 @@ while true; do
       [[ -z "$mac" ]] && continue
       [[ "$paused" -ne 0 ]] && continue
 
-      EXPIRE_TIMESTAMP=$(date -d "$expire_on" +%s)
+      EXPIRE_TIMESTAMP=$(date -d "$expire_on" +%s) || {
+        ERROR=1
+        break
+      }
+
       TIMEOUT=$((EXPIRE_TIMESTAMP - NOW_TIMESTAMP))
 
       [[ "$TIMEOUT" -le 0 ]] && continue
       [[ "$TIMEOUT" -gt 2147483 ]] && TIMEOUT=2147483
 
-      ipset add allowed_macs "$mac" timeout "$TIMEOUT" -exist \
-        || ERROR=1
+      ipset add allowed_macs "$mac" timeout "$TIMEOUT" -exist || {
+        ERROR=1
+        break
+      }
     done <<< "$RESULT"
   fi
 
   # ---------------------------------
-  # Handle success / failure
+  # SUCCESS / RETRY LOGIC
   # ---------------------------------
   if [[ "$ERROR" -eq 0 ]]; then
-    echo "✅ ipset sync OK ($(date))"
-    sleep 5
+    echo "✅ ipset sync successful — exiting"
+    exit 0
   else
-    echo "⚠️ Error detected, retrying in ${RETRY_DELAY}s..."
+    echo "⚠️ Error occurred — retrying in ${RETRY_DELAY}s..."
     sleep "$RETRY_DELAY"
   fi
 done
