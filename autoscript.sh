@@ -182,6 +182,36 @@ apt install -y \
 
 echo "✅ All packages installed successfully"
 
+echo "Creating IFACE checker"
+cat <<'EOF' > "/usr/local/sbin/check-net-ifaces.sh"
+#!/bin/bash
+
+# Detect WAN
+WAN_IFACE=$(ip route show default 2>/dev/null | awk '{print $5}' | head -n1)
+[[ -z "$WAN_IFACE" ]] && exit 1
+
+# WAN must be UP
+[[ "$(cat /sys/class/net/$WAN_IFACE/operstate)" != "up" ]] && exit 1
+
+# Detect LAN
+LAN_IFACE=""
+for iface in /sys/class/net/*; do
+  iface=$(basename "$iface")
+  [[ "$iface" == "lo" ]] && continue
+  [[ "$iface" == "$WAN_IFACE" ]] && continue
+  [[ "$iface" == wl* ]] && continue
+  [[ "$(cat /sys/class/net/$iface/operstate)" != "up" ]] && continue
+  [[ ! -d "/sys/class/net/$iface/device" ]] && continue
+  LAN_IFACE="$iface"
+  break
+done
+
+[[ -z "$LAN_IFACE" ]] && exit 1
+
+exit 0
+EOF
+chmod +x /usr/local/sbin/check-net-ifaces.sh
+
 # -----------------------------
 # Check LAN_IFACE
 # -----------------------------
@@ -276,6 +306,11 @@ cat <<EOF > "$OVERRIDE_FILE"
 [Unit]
 After=network-online.target
 Wants=network-online.target
+
+[Service]
+ExecStartPre=/usr/local/sbin/check-net-ifaces.sh
+Restart=on-failure
+RestartSec=5
 EOF
 
 echo "✅ Created systemd override: $OVERRIDE_FILE"
@@ -446,8 +481,11 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+ExecStartPre=/usr/local/sbin/check-net-ifaces.sh
 ExecStart=/usr/local/sbin/setup-network.sh
 RemainAfterExit=yes
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
