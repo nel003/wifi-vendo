@@ -1,7 +1,10 @@
 {
-  "/api/admin/refresh/route": "app/api/admin/refresh/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/api/settings/route": "app/api/settings/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/admin/(admin)/settings/page": "app/admin/(admin)/settings/page.js"
+  "/api/login/route": "app/api/login/route.js",
+  "/api/rates/route": "app/api/rates/route.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/(user)/page": "app/(user)/page.js",
+  "/admin/(admin)/settings/page": "app/admin/(admin)/settings/page.js",
+  "/admin/(admin)/page": "app/admin/(admin)/page.js"
 }

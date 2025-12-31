@@ -26,6 +26,10 @@ export default function Page() {
 
     useEffect(() => {
         init();
+        const interval = setInterval(() => {
+            init();
+        }, 2000);
+        return () => clearInterval(interval);
     }, [init]);
 
     return (

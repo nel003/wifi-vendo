@@ -55,8 +55,8 @@ export async function POST(req: Request) {
             await db.query("UPDATE users SET failed_attempts = 0, lockout_until = NULL WHERE id = ?", [user.id]);
         }
 
-        // Remove password from payload
-        const { password: _, failed_attempts, lockout_until, ...userPayload } = user;
+        // Remove password and refresh_token from payload
+        const { password: _, refresh_token: __, failed_attempts, lockout_until, ...userPayload } = user;
 
         const accessToken = generateAccessToken(userPayload);
         const refreshToken = generateRefreshToken(userPayload);

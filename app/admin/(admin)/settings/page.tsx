@@ -32,6 +32,8 @@ export default function SettingsPage() {
     const [appName, setAppName] = useState("");
     const [coinslotTimeout, setCoinslotTimeout] = useState("");
     const [hasCoinslot, setHasCoinslot] = useState(false);
+    const [maxUpload, setMaxUpload] = useState("");
+    const [maxDownload, setMaxDownload] = useState("");
     const [settingsLoading, setSettingsLoading] = useState(true);
 
     useEffect(() => {
@@ -40,6 +42,8 @@ export default function SettingsPage() {
             setAppName(res.data.app_name);
             setCoinslotTimeout(String(res.data.coinslot_timeout || "120"));
             setHasCoinslot(res.data.has_coinslot);
+            setMaxUpload(String(res.data.max_upload || "1024"));
+            setMaxDownload(String(res.data.max_download || "1024"));
             setSettingsLoading(false);
         }).catch(err => {
             console.error("Failed to fetch settings", err);
@@ -54,7 +58,9 @@ export default function SettingsPage() {
             await adminApi.post("/api/admin/settings/update", {
                 app_name: appName,
                 coinslot_timeout: Number(coinslotTimeout),
-                has_coinslot: hasCoinslot
+                has_coinslot: hasCoinslot,
+                max_upload: Number(maxUpload),
+                max_download: Number(maxDownload)
             });
             toast({
                 title: "Success",
@@ -295,6 +301,30 @@ export default function SettingsPage() {
                                     placeholder="120"
                                     disabled={settingsLoading}
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="maxUpload">Max Upload Speed (Mbps)</Label>
+                                <Input
+                                    id="maxUpload"
+                                    type="number"
+                                    value={maxUpload}
+                                    onChange={(e) => setMaxUpload(e.target.value)}
+                                    placeholder="20"
+                                    disabled={settingsLoading}
+                                />
+                                <p className="text-xs text-slate-500">Total Vendo Upload Capacity (Shared between all clients).</p>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="maxDownload">Max Download Speed (Mbps)</Label>
+                                <Input
+                                    id="maxDownload"
+                                    type="number"
+                                    value={maxDownload}
+                                    onChange={(e) => setMaxDownload(e.target.value)}
+                                    placeholder="20"
+                                    disabled={settingsLoading}
+                                />
+                                <p className="text-xs text-slate-500">Total Vendo Download Capacity (Shared between all clients).</p>
                             </div>
                         </div>
                         <div className="flex items-center justify-between rounded-lg border p-4 bg-slate-50/50">
