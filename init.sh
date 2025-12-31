@@ -1,68 +1,87 @@
 #!/bin/bash
-set -e
 
-# ---------------------------------
-# Resolve .env.local from script dir
-# ---------------------------------
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ENV_FILE="$SCRIPT_DIR/.env.local"
+RETRY_DELAY=5
 
-if [[ ! -f "$ENV_FILE" ]]; then
-  echo "❌ ENV file not found: $ENV_FILE"
-  exit 1
-fi
+while true; do
+  ERROR=0
 
-# ---------------------------------
-# Load environment variables
-# ---------------------------------
-export $(grep -v '^#' "$ENV_FILE" | xargs)
+  # ---------------------------------
+  # Resolve .env.local from script dir
+  # ---------------------------------
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  ENV_FILE="$SCRIPT_DIR/.env.local"
 
-# ---------------------------------
-# Validate required variables
-# ---------------------------------
-: "${DB_HOST:?Missing DB_HOST}"
-: "${DB_USER:?Missing DB_USER}"
-: "${DB_PASSWORD:?Missing DB_PASSWORD}"
-: "${DB_NAME:?Missing DB_NAME}"
+  if [[ ! -f "$ENV_FILE" ]]; then
+    echo "❌ ENV file not found: $ENV_FILE"
+    ERROR=1
+  else
+    export $(grep -v '^#' "$ENV_FILE" | xargs)
+  fi
 
-# ---------------------------------
-# Query database
-# ---------------------------------
-QUERY="
-SELECT mac, expire_on, paused
-FROM clients
-WHERE expire_on >= NOW();
-"
+  # ---------------------------------
+  # Validate required variables
+  # ---------------------------------
+  for v in DB_HOST DB_USER DB_PASSWORD DB_NAME; do
+    if [[ -z "${!v}" ]]; then
+      echo "❌ Missing env: $v"
+      ERROR=1
+    fi
+  done
 
-RESULT=$(mysql \
-  -h "$DB_HOST" \
-  -u "$DB_USER" \
-  -p"$DB_PASSWORD" \
-  -D "$DB_NAME" \
-  -sN -e "$QUERY"
-)
+  # ---------------------------------
+  # Query database
+  # ---------------------------------
+  if [[ "$ERROR" -eq 0 ]]; then
+    QUERY="
+      SELECT mac, expire_on, paused
+      FROM clients
+      WHERE expire_on >= NOW();
+    "
 
-# ---------------------------------
-# Process clients
-# ---------------------------------
-NOW_TIMESTAMP=$(date +%s)
+    RESULT=$(mysql \
+      -h "$DB_HOST" \
+      -u "$DB_USER" \
+      -p"$DB_PASSWORD" \
+      -D "$DB_NAME" \
+      -sN -e "$QUERY" 2>/tmp/ipset-mysql.err
+    ) || ERROR=1
+  fi
 
-while IFS=$'\t' read -r mac expire_on paused; do
-  [[ -z "$mac" ]] && continue
-  [[ "$paused" -ne 0 ]] && continue
+  # ---------------------------------
+  # Process clients
+  # ---------------------------------
+  if [[ "$ERROR" -eq 0 ]]; then
+    NOW_TIMESTAMP=$(date +%s)
 
-  EXPIRE_TIMESTAMP=$(date -d "$expire_on" +%s)
-  TIMEOUT=$((EXPIRE_TIMESTAMP - NOW_TIMESTAMP))
+    while IFS=$'\t' read -r mac expire_on paused; do
+      [[ -z "$mac" ]] && continue
+      [[ "$paused" -ne 0 ]] && continue
 
-  # Skip expired
-  [[ "$TIMEOUT" -le 0 ]] && continue
+      EXPIRE_TIMESTAMP=$(date -d "$expire_on" +%s) || {
+        ERROR=1
+        break
+      }
 
-  # Kernel ipset max timeout guard
-  [[ "$TIMEOUT" -gt 2147483 ]] && TIMEOUT=2147483
+      TIMEOUT=$((EXPIRE_TIMESTAMP - NOW_TIMESTAMP))
 
-  echo "Allowing $mac for $TIMEOUT seconds"
+      [[ "$TIMEOUT" -le 0 ]] && continue
+      [[ "$TIMEOUT" -gt 2147483 ]] && TIMEOUT=2147483
 
-  ipset add allowed_macs "$mac" timeout "$TIMEOUT" -exist
-done <<< "$RESULT"
+      ipset add allowed_macs "$mac" timeout "$TIMEOUT" -exist || {
+        ERROR=1
+        break
+      }
+    done <<< "$RESULT"
+  fi
 
-echo "✅ Processed clients successfully"
+  # ---------------------------------
+  # SUCCESS / RETRY LOGIC
+  # ---------------------------------
+  if [[ "$ERROR" -eq 0 ]]; then
+    echo "✅ ipset sync successful — exiting"
+    exit 0
+  else
+    echo "⚠️ Error occurred — retrying in ${RETRY_DELAY}s..."
+    sleep "$RETRY_DELAY"
+  fi
+done
