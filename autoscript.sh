@@ -319,13 +319,42 @@ npm -v
 TARGET="/usr/local/sbin/setup-network.sh"
 mkdir -p /usr/local/sbin
 
-cat <<EOF > "$TARGET"
+cat <<'EOF' > "$TARGET"
 #!/bin/bash
 # setup-network.sh — SAFE CAKE + IFB + firewall
 set -e
 
-WAN_IFACE="$WAN_IFACE"
-LAN_IFACE="$LAN_IFACE"
+WAN_IFACE=$(ip route show default 2>/dev/null | awk '{print $5}' | head -n1)
+
+if [[ -z "$WAN_IFACE" ]]; then
+  echo "❌ WAN interface not detected (no default route)"
+  exit 1
+fi
+
+# -----------------------------
+# Detect LAN Interface
+# -----------------------------
+LAN_IFACE=""
+
+for iface in $(ls /sys/class/net); do
+  # Skip loopback and WAN
+  [[ "$iface" == "lo" ]] && continue
+  [[ "$iface" == "$WAN_IFACE" ]] && continue
+  # Skip WiFi (optional)
+  [[ "$iface" == wl* ]] && continue
+  # Interface must be UP
+  state=$(cat /sys/class/net/$iface/operstate)
+  [[ "$state" != "up" ]] && continue
+  # Ethernet only
+  [[ ! -d "/sys/class/net/$iface/device" ]] && continue
+  LAN_IFACE="$iface"
+  break
+done
+
+if [[ -z "$LAN_IFACE" ]]; then
+  echo "❌ LAN interface not detected"
+  exit 1
+fi
 SPEED="50mbit"   # TOTAL internet speed (not per-client)
 
 echo "=== Network shaping start ==="
@@ -388,7 +417,7 @@ iptables -t nat -C POSTROUTING -o "$WAN_IFACE" -j MASQUERADE 2>/dev/null \
 # Disable hotspot sharing by setting TTL to 1 on LAN outbound traffic
 iptables -t mangle -C POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1 2>/dev/null \
   || iptables -t mangle -A POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1
-  
+
 # ---------------------------
 # SYSCTL (SAFE VALUES)
 # ---------------------------
