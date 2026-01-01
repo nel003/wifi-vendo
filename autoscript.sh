@@ -395,6 +395,11 @@ SPEED="40mbit"   # TOTAL internet speed (not per-client)
 echo "=== Network shaping start ==="
 
 # ---------------------------
+# Disable offloading (required for CAKE)
+# ---------------------------
+ethtool -K "$WAN_IFACE" gro off gso off || true
+
+# ---------------------------
 # IFB setup (idempotent)
 # ---------------------------
 modprobe ifb
