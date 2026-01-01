@@ -397,27 +397,13 @@ echo "=== Network shaping start ==="
 # ---------------------------
 # Disable offloading (required for CAKE)
 # ---------------------------
-ethtool -K "$WAN_IFACE" gro off gso off || true
+ethtool -K "$LAN_IFACE" gro off gso off tso off
 
-# ---------------------------
-# IFB setup (idempotent)
-# ---------------------------
-modprobe ifb
-
-ip link show ifb0 >/dev/null 2>&1 || ip link add ifb0 type ifb
-ip link set ifb0 up
-
-tc qdisc del dev "$WAN_IFACE" ingress 2>/dev/null || true
-tc qdisc add dev "$WAN_IFACE" handle ffff: ingress
-
-tc filter add dev "$WAN_IFACE" parent ffff: protocol ip u32 match u32 0 0 \
-  action mirred egress redirect dev ifb0 2>/dev/null || true
-
-# ---------------------------
-# CAKE (DOWNLOAD & UPLOAD)
-# ---------------------------
-tc qdisc replace dev ifb0 root cake bandwidth "$SPEED" nat dual-dsthost
-tc qdisc replace dev "$WAN_IFACE" root cake bandwidth "$SPEED" nat dual-srchost
+tc qdisc replace dev "$LAN_IFACE" root cake \
+  bandwidth "$SPEED" \
+  dual-dsthost \
+  rtt 5ms \
+  ack-filter
 
 # ---------------------------
 # IPSET
