@@ -390,7 +390,7 @@ if [[ -z "$LAN_IFACE" ]]; then
   echo "❌ LAN interface not detected"
   exit 1
 fi
-SPEED="50mbit"   # TOTAL internet speed (not per-client)
+SPEED="40mbit"   # TOTAL internet speed (not per-client)
 
 echo "=== Network shaping start ==="
 
@@ -399,10 +399,12 @@ echo "=== Network shaping start ==="
 # ---------------------------
 ethtool -K "$LAN_IFACE" gro off gso off tso off
 
-tc qdisc replace dev "$LAN_IFACE" root cake \
+# ---------------------------
+tc qdisc replace dev enx000ec8a060da root cake \
   bandwidth "$SPEED" \
+  diffserv4 \
   dual-dsthost \
-  rtt 5ms \
+  rtt 25ms \
   ack-filter
 
 # ---------------------------
