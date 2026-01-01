@@ -450,6 +450,51 @@ tc qdisc replace dev ifb0 root cake \
 tc qdisc replace dev "$WAN_IFACE" root cake \
   bandwidth "$UP_SPEED" diffserv4 dual-srchost rtt 25ms ack-filter
 
+# ---------------------------
+# IPSET
+# ---------------------------
+ipset create allowed_macs hash:mac timeout 2147483 -exist
+
+# ---------------------------
+# IPTABLES (NO GLOBAL FLUSH)
+# ---------------------------
+
+iptables -t mangle -D PREROUTING -i "$LAN_IFACE" -m set ! --match-set allowed_macs src \
+  -j MARK --set-mark 99 2>/dev/null || true
+
+iptables -t mangle -A PREROUTING -i "$LAN_IFACE" \
+  -m set ! --match-set allowed_macs src -j MARK --set-mark 99
+
+iptables -t nat -D PREROUTING -i "$LAN_IFACE" -m mark --mark 99 -p tcp --dport 80 \
+  -j DNAT --to 10.0.0.1 2>/dev/null || true
+
+iptables -t nat -A PREROUTING -i "$LAN_IFACE" -m mark --mark 99 -p tcp --dport 80 \
+  -j DNAT --to 10.0.0.1
+
+iptables -C FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null \
+  || iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+iptables -C FORWARD -i "$LAN_IFACE" -m mark --mark 99 -j DROP 2>/dev/null \
+  || iptables -A FORWARD -i "$LAN_IFACE" -m mark --mark 99 -j DROP
+
+iptables -t nat -C POSTROUTING -o "$WAN_IFACE" -j MASQUERADE 2>/dev/null \
+  || iptables -t nat -A POSTROUTING -o "$WAN_IFACE" -j MASQUERADE
+
+# Disable hotspot sharing by setting TTL to 1 on LAN outbound traffic
+iptables -t mangle -C POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1 2>/dev/null \
+  || iptables -t mangle -A POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1
+
+# ---------------------------
+# SYSCTL (SAFE VALUES)
+# ---------------------------
+sysctl -w net.ipv4.ip_forward=1
+sysctl -w net.netfilter.nf_conntrack_max=65536
+sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=43200
+sysctl -w net.netfilter.nf_conntrack_udp_timeout=30
+sysctl -w net.ipv4.tcp_tw_reuse=1
+
+#bash /root/wifi-vendo/init.sh
+
 echo "✅ Network shaping applied successfully"
 OUTER_EOF
 
