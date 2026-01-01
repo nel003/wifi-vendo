@@ -25,9 +25,25 @@ export async function POST(req: Request) {
             return Response.json({ msg: "Session expired or revoked" }, { status: 401 });
         }
 
-        const newAccessToken = generateAccessToken(userPayload);
+        const user = rows[0];
 
-        return Response.json({ token: newAccessToken, ...userPayload }, { status: 200 });
+        // Generate new access token with fresh data
+        const newPayload = {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            username: user.username
+        };
+        const newAccessToken = generateAccessToken(newPayload);
+
+        return Response.json({
+            token: newAccessToken,
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            username: user.username,
+            refreshToken: user.refresh_token
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Refresh error:", error);

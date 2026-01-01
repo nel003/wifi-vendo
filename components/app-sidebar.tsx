@@ -28,13 +28,9 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 
 import { useSettingsStore } from "@/store/settings-store";
+import { adminStore } from "@/store/user";
 
 const data = {
-  user: {
-    name: "Arnel",
-    email: "alopena55555@gmail.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   items: [
     {
       title: "Dashboard",
@@ -72,6 +68,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const pathname = usePathname();
   const { appName, version, fetchSettings } = useSettingsStore();
+  const { adminUser } = adminStore();
+
+  const user = {
+    name: adminUser?.name || "Admin",
+    email: adminUser?.email || "",
+    avatar: "/avatars/shadcn.jpg",
+  }
 
   React.useEffect(() => {
     fetchSettings();
@@ -116,7 +119,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

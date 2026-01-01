@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 27, 2025 at 05:15 AM
+-- Generation Time: Jan 01, 2026 at 03:25 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -60,6 +60,7 @@ CREATE TABLE `rates` (
 --
 
 INSERT INTO `rates` (`id`, `name`, `price`, `time`) VALUES
+(6, '25 Minutes', 1, 25),
 (7, '2 Hours', 5, 120),
 (8, '5 Hours', 10, 300);
 
@@ -79,9 +80,12 @@ CREATE TABLE `settings` (
 --
 
 INSERT INTO `settings` (`key`, `value`) VALUES
-('app_name', 'Arns Wifi '),
+('app_name', 'OpenFi'),
 ('app_version', '2.0'),
-('has_coinslot', 'false');
+('coinslot_timeout', '30'),
+('has_coinslot', 'false'),
+('max_download', '40'),
+('max_upload', '20');
 
 -- --------------------------------------------------------
 
@@ -118,7 +122,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `username`, `password`, `refresh_token`, `failed_attempts`, `lockout_until`) VALUES
-(1, 'Arnel Lopena', 'alopena55555@gmail.com', 'nel003', '$2b$10$qcxvb1Z2tUC482zRb4AlTuap1Q.IPV1pQZMVo6vwLvJM4qFA9757W', NULL, 5, '2025-12-27 12:29:54');
+(1, 'Admin', 'admin@openfi.com', 'admin', '$2b$10$dzcnp3zOi3JpcBSltSsNMu9OagIKyhjXXKozg9FIjHLzOvqzw2hyC', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IkFybmVsIExvcGVuYSIsImVtYWlsIjoiYWxvcGVuYTU1NTU1QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoibmVsMDAzIiwiaWF0IjoxNzY3MTU4MjUxLCJleHAiOjE3Njc3NjMwNTF9.IkCbsg6Tdv846mwR2XQ5OygO3I0qFWpTYZr8Y3ccREA', 0, NULL);
 
 -- --------------------------------------------------------
 

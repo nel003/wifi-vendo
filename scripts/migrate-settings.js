@@ -44,6 +44,8 @@ async function migrate() {
         await insertSetting('app_name', process.env.NEXT_PUBLIC_APP_NAME || 'WiFi Vendo');
         await insertSetting('app_version', process.env.NEXT_PUBLIC_VERSION || '2.0');
         await insertSetting('has_coinslot', process.env.NEXT_PUBLIC_HAS_COINSLOT || 'true');
+        await insertSetting('max_upload', process.env.MAX_UPLOAD || '20');
+        await insertSetting('max_download', process.env.MAX_DOWNLOAD || '20');
 
         console.log('Seed data inserted.');
 

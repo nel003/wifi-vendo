@@ -15,7 +15,9 @@ import axios from "axios";
 export default function SettingsPage() {
     const { adminApi } = useAdminAuth();
     const { toast } = useToast();
-    const [loading, setLoading] = useState(false);
+    const [profileLoading, setProfileLoading] = useState(false);
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [configLoading, setConfigLoading] = useState(false);
     const { adminUser, setAdminUser } = adminStore();
 
     // Password state
@@ -35,6 +37,14 @@ export default function SettingsPage() {
     const [maxUpload, setMaxUpload] = useState("");
     const [maxDownload, setMaxDownload] = useState("");
     const [settingsLoading, setSettingsLoading] = useState(true);
+
+    useEffect(() => {
+        if (adminUser) {
+            setName(adminUser.name);
+            setUsername(adminUser.username);
+            setEmail(adminUser.email);
+        }
+    }, [adminUser]);
 
     useEffect(() => {
         // Fetch public settings to populate form
@@ -59,7 +69,7 @@ export default function SettingsPage() {
 
     async function updateSettings(e: React.FormEvent) {
         e.preventDefault();
-        setLoading(true);
+        setConfigLoading(true);
         try {
             await adminApi.post("/api/admin/settings/update", {
                 app_name: appName,
@@ -79,13 +89,13 @@ export default function SettingsPage() {
                 variant: "destructive"
             });
         } finally {
-            setLoading(false);
+            setConfigLoading(false);
         }
     }
 
     const handleProfileUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
+        setProfileLoading(true);
         try {
             const res = await adminApi.put("/api/admin/profile", {
                 name,
@@ -108,7 +118,7 @@ export default function SettingsPage() {
                 variant: "destructive",
             });
         } finally {
-            setLoading(false);
+            setProfileLoading(false);
         }
     }
 
@@ -133,7 +143,7 @@ export default function SettingsPage() {
             return;
         }
 
-        setLoading(true);
+        setPasswordLoading(true);
         try {
             await adminApi.post("/api/admin/change-password", {
                 oldPassword,
@@ -157,7 +167,7 @@ export default function SettingsPage() {
                 variant: "destructive",
             });
         } finally {
-            setLoading(false);
+            setPasswordLoading(false);
         }
     };
 
@@ -211,8 +221,8 @@ export default function SettingsPage() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <Button type="submit" disabled={profileLoading} className="w-full sm:w-auto">
+                                {profileLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save Changes
                             </Button>
                         </CardFooter>
@@ -264,8 +274,8 @@ export default function SettingsPage() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <Button type="submit" disabled={passwordLoading} className="w-full sm:w-auto">
+                                {passwordLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Update Password
                             </Button>
                         </CardFooter>
@@ -347,9 +357,9 @@ export default function SettingsPage() {
                             />
                         </div>
                         <div className="flex justify-end">
-                            <Button type="submit" disabled={loading || settingsLoading} className="w-full sm:w-auto">
-                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Save Configuration
+                            <Button type="submit" disabled={configLoading || settingsLoading} className="w-full sm:w-auto">
+                                {configLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Configuration & Reboot
                             </Button>
                         </div>
                     </form>
