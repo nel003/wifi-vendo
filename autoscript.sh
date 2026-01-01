@@ -390,7 +390,7 @@ if [[ -z "$LAN_IFACE" ]]; then
   echo "❌ LAN interface not detected"
   exit 1
 fi
-SPEED="50mbit"   # TOTAL internet speed (not per-client)
+SPEED="40mbit"   # TOTAL internet speed (not per-client)
 
 echo "=== Network shaping start ==="
 
@@ -416,8 +416,18 @@ tc filter add dev "$WAN_IFACE" parent ffff: protocol ip u32 match u32 0 0 \
 # ---------------------------
 # CAKE (DOWNLOAD & UPLOAD)
 # ---------------------------
-tc qdisc replace dev ifb0 root cake bandwidth "$SPEED" nat dual-dsthost
-tc qdisc replace dev "$WAN_IFACE" root cake bandwidth "$SPEED" nat dual-srchost
+tc qdisc replace dev ifb0 root cake \
+  bandwidth "$SPEED" \
+  diffserv4 \
+  dual-dsthost \
+  rtt 25ms \
+  ack-filter
+tc qdisc replace dev "$WAN_IFACE" root cake \
+  bandwidth "$SPEED" \
+  diffserv4 \
+  dual-dsthost \
+  rtt 25ms \
+  ack-filter
 
 # ---------------------------
 # IPSET
