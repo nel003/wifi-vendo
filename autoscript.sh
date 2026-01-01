@@ -354,7 +354,7 @@ npm -v
 TARGET="/usr/local/sbin/setup-network.sh"
 mkdir -p /usr/local/sbin
 
-cat <<'EOF' > "$TARGET"
+cat <<'OUTER_EOF' > "$TARGET"
 #!/bin/bash
 # setup-network.sh — SAFE CAKE + IFB + firewall
 set -e
@@ -372,16 +372,14 @@ fi
 LAN_IFACE=""
 
 for iface in $(ls /sys/class/net); do
-  # Skip loopback and WAN
   [[ "$iface" == "lo" ]] && continue
   [[ "$iface" == "$WAN_IFACE" ]] && continue
-  # Skip WiFi (optional)
   [[ "$iface" == wl* ]] && continue
-  # Interface must be UP
+
   state=$(cat /sys/class/net/$iface/operstate)
   [[ "$state" != "up" ]] && continue
-  # Ethernet only
   [[ ! -d "/sys/class/net/$iface/device" ]] && continue
+
   LAN_IFACE="$iface"
   break
 done
@@ -396,15 +394,15 @@ echo "=== Network shaping start ==="
 # ============================
 # FETCH SPEEDS FROM DATABASE
 # ============================
-read -r DOWNLOAD UPLOAD <<EOF
-$(mysql -u root -N -s <<'SQL'
+read -r DOWNLOAD UPLOAD <<DB_EOF
+$(mysql -u root -N -s <<'SQL_EOF'
 USE wifi;
 SELECT
   (SELECT value FROM settings WHERE `key`='max_download' LIMIT 1),
   (SELECT value FROM settings WHERE `key`='max_upload' LIMIT 1);
-SQL
+SQL_EOF
 )
-EOF
+DB_EOF
 
 # ============================
 # VALIDATE VALUES
@@ -421,12 +419,12 @@ echo "📶 Download limit: $DOWN_SPEED"
 echo "📤 Upload limit:   $UP_SPEED"
 
 # ============================
-# DISABLE OFFLOADING (REQUIRED)
+# DISABLE OFFLOADING
 # ============================
 ethtool -K "$WAN_IFACE" gro off gso off tso off 2>/dev/null || true
 
 # ============================
-# IFB SETUP (IDEMPOTENT)
+# IFB SETUP
 # ============================
 modprobe ifb
 
@@ -441,72 +439,19 @@ tc filter add dev "$WAN_IFACE" parent ffff: protocol ip u32 match u32 0 0 \
   action mirred egress redirect dev ifb0
 
 # ============================
-# CAKE — DOWNLOAD (IFB)
+# CAKE — DOWNLOAD
 # ============================
 tc qdisc replace dev ifb0 root cake \
-  bandwidth "$DOWN_SPEED" \
-  diffserv4 \
-  dual-dsthost \
-  rtt 25ms \
-  ack-filter
+  bandwidth "$DOWN_SPEED" diffserv4 dual-dsthost rtt 25ms ack-filter
 
 # ============================
-# CAKE — UPLOAD (WAN)
+# CAKE — UPLOAD
 # ============================
 tc qdisc replace dev "$WAN_IFACE" root cake \
-  bandwidth "$UP_SPEED" \
-  diffserv4 \
-  dual-srchost \
-  rtt 25ms \
-  ack-filter
-
-# ---------------------------
-# IPSET
-# ---------------------------
-ipset create allowed_macs hash:mac timeout 2147483 -exist
-
-# ---------------------------
-# IPTABLES (NO GLOBAL FLUSH)
-# ---------------------------
-
-iptables -t mangle -D PREROUTING -i "$LAN_IFACE" -m set ! --match-set allowed_macs src \
-  -j MARK --set-mark 99 2>/dev/null || true
-
-iptables -t mangle -A PREROUTING -i "$LAN_IFACE" \
-  -m set ! --match-set allowed_macs src -j MARK --set-mark 99
-
-iptables -t nat -D PREROUTING -i "$LAN_IFACE" -m mark --mark 99 -p tcp --dport 80 \
-  -j DNAT --to 10.0.0.1 2>/dev/null || true
-
-iptables -t nat -A PREROUTING -i "$LAN_IFACE" -m mark --mark 99 -p tcp --dport 80 \
-  -j DNAT --to 10.0.0.1
-
-iptables -C FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null \
-  || iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-
-iptables -C FORWARD -i "$LAN_IFACE" -m mark --mark 99 -j DROP 2>/dev/null \
-  || iptables -A FORWARD -i "$LAN_IFACE" -m mark --mark 99 -j DROP
-
-iptables -t nat -C POSTROUTING -o "$WAN_IFACE" -j MASQUERADE 2>/dev/null \
-  || iptables -t nat -A POSTROUTING -o "$WAN_IFACE" -j MASQUERADE
-
-# Disable hotspot sharing by setting TTL to 1 on LAN outbound traffic
-iptables -t mangle -C POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1 2>/dev/null \
-  || iptables -t mangle -A POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1
-
-# ---------------------------
-# SYSCTL (SAFE VALUES)
-# ---------------------------
-sysctl -w net.ipv4.ip_forward=1
-sysctl -w net.netfilter.nf_conntrack_max=65536
-sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=43200
-sysctl -w net.netfilter.nf_conntrack_udp_timeout=30
-sysctl -w net.ipv4.tcp_tw_reuse=1
-
-#bash /root/wifi-vendo/init.sh
+  bandwidth "$UP_SPEED" diffserv4 dual-srchost rtt 25ms ack-filter
 
 echo "✅ Network shaping applied successfully"
-EOF
+OUTER_EOF
 
 chmod +x "$TARGET"
 
