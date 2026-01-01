@@ -390,18 +390,44 @@ if [[ -z "$LAN_IFACE" ]]; then
   echo "❌ LAN interface not detected"
   exit 1
 fi
-SPEED="40mbit"   # TOTAL internet speed (not per-client)
 
 echo "=== Network shaping start ==="
 
-# ---------------------------
-# Disable offloading (required for CAKE)
-# ---------------------------
-ethtool -K "$WAN_IFACE" gro off gso off || true
+# ============================
+# FETCH SPEEDS FROM DATABASE
+# ============================
+read -r DOWNLOAD UPLOAD <<EOF
+$(mysql -u root -N -s <<'SQL'
+USE wifi;
+SELECT
+  (SELECT value FROM settings WHERE `key`='max_download' LIMIT 1),
+  (SELECT value FROM settings WHERE `key`='max_upload' LIMIT 1);
+SQL
+)
+EOF
 
-# ---------------------------
-# IFB setup (idempotent)
-# ---------------------------
+# ============================
+# VALIDATE VALUES
+# ============================
+if [[ -z "$DOWNLOAD" || -z "$UPLOAD" ]]; then
+  echo "❌ Failed to read speed limits from database"
+  exit 1
+fi
+
+DOWN_SPEED="${DOWNLOAD}mbit"
+UP_SPEED="${UPLOAD}mbit"
+
+echo "📶 Download limit: $DOWN_SPEED"
+echo "📤 Upload limit:   $UP_SPEED"
+
+# ============================
+# DISABLE OFFLOADING (REQUIRED)
+# ============================
+ethtool -K "$WAN_IFACE" gro off gso off tso off 2>/dev/null || true
+
+# ============================
+# IFB SETUP (IDEMPOTENT)
+# ============================
 modprobe ifb
 
 ip link show ifb0 >/dev/null 2>&1 || ip link add ifb0 type ifb
@@ -410,22 +436,27 @@ ip link set ifb0 up
 tc qdisc del dev "$WAN_IFACE" ingress 2>/dev/null || true
 tc qdisc add dev "$WAN_IFACE" handle ffff: ingress
 
+tc filter del dev "$WAN_IFACE" parent ffff: 2>/dev/null || true
 tc filter add dev "$WAN_IFACE" parent ffff: protocol ip u32 match u32 0 0 \
-  action mirred egress redirect dev ifb0 2>/dev/null || true
+  action mirred egress redirect dev ifb0
 
-# ---------------------------
-# CAKE (DOWNLOAD & UPLOAD)
-# ---------------------------
+# ============================
+# CAKE — DOWNLOAD (IFB)
+# ============================
 tc qdisc replace dev ifb0 root cake \
-  bandwidth "$SPEED" \
+  bandwidth "$DOWN_SPEED" \
   diffserv4 \
   dual-dsthost \
   rtt 25ms \
   ack-filter
+
+# ============================
+# CAKE — UPLOAD (WAN)
+# ============================
 tc qdisc replace dev "$WAN_IFACE" root cake \
-  bandwidth "$SPEED" \
+  bandwidth "$UP_SPEED" \
   diffserv4 \
-  dual-dsthost \
+  dual-srchost \
   rtt 25ms \
   ack-filter
 
