@@ -15,7 +15,7 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer"
-import { WifiHigh, X, Lock, Zap, ArrowRight, Ticket } from "lucide-react";
+import { WifiHigh, X, Lock, Zap, ArrowRight, Ticket, Coins } from "lucide-react";
 import InsertCoin from "./InsertCoin";
 import captiveCheck from "@/utils/captiveCheck";
 import { Card } from "@/components/ui/card";
@@ -64,7 +64,7 @@ export default function Voucher() {
         <div className="min-h-screen w-full bg-slate-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-4xl h-auto md:h-[500px] border-0 shadow-2xl overflow-hidden flex flex-col md:flex-row bg-white rounded-3xl">
                 {/* Left Panel - Dark */}
-                <div className="w-full md:w-5.5/12 bg-emerald-950 p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
+                <div className="w-full md:w-4/20 bg-emerald-950 p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
 
                     {/* Background decoration */}
                     <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-800 via-emerald-950 to-emerald-950 opacity-90 z-0"></div>
@@ -96,7 +96,7 @@ export default function Voucher() {
                 </div>
 
                 {/* Right Panel - Light */}
-                <div className="w-full md:w-6.5/12 bg-white p-8 md:p-12 flex flex-col justify-center relative">
+                <div className="w-full md:w-16/20 bg-white p-8 md:p-12 flex flex-col justify-center relative">
                     <div className="max-w-md mx-auto w-full">
                         <h2 className="text-2xl font-bold text-slate-900 mb-2">Redeem Voucher</h2>
                         <p className="text-slate-500 text-sm mb-8">Enter the code provided on your receipt.</p>
@@ -119,21 +119,17 @@ export default function Voucher() {
                                 </div>
                             </div>
 
-                            <Button
-                                disabled={voucher.length < 6}
-                                onClick={(e) => redeem(e)}
-                                className="w-full h-12 bg-slate-950 hover:bg-slate-900 text-white font-medium rounded-xl shadow-lg shadow-slate-950/10 transition-all flex px-6 group"
-                            >
-                                <span>Redeem Access</span>
-                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                            </Button>
+                            <div className="flex flex-col md:flex-row gap-4 pt-2">
+                                <Button
+                                    disabled={voucher.length < 6}
+                                    onClick={(e) => redeem(e)}
+                                    className="flex-1 h-12 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl shadow-lg shadow-emerald-950/10 transition-all flex justify-center items-center gap-2 group"
+                                >
+                                    <span>Redeem Access</span>
+                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </Button>
 
-                            {/* <div className="pt-4 flex items-center justify-center gap-4 text-xs text-slate-500">
-                                <span>Need help? <a href="#" className="text-slate-900 font-semibold hover:underline">Contact Support</a></span>
-                            </div> */}
-
-                            {hasCoinslot && (
-                                <div className="text-center pt-2">
+                                {hasCoinslot && (
                                     <Drawer open={isDrawerOpen} onOpenChange={(v) => {
                                         if (waitingForCoin) {
                                             setIsDrawerOpen(true);
@@ -142,9 +138,10 @@ export default function Voucher() {
                                         setIsDrawerOpen(v)
                                     }}>
                                         <DrawerTrigger asChild>
-                                            <button className="text-xs text-slate-400 hover:text-slate-600 transition-colors font-medium">
-                                                Or pay with <span className="underline decoration-slate-300 underline-offset-2 font-bold">Coins</span>
-                                            </button>
+                                            <Button className="flex-1 py-4 mb-3 h-12 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-xl shadow-lg shadow-slate-900/10 transition-all flex justify-center items-center px-6">
+                                                <Coins className="mr-2" size={20} />
+                                                <span>Pay with Coins</span>
+                                            </Button>
                                         </DrawerTrigger>
                                         <DrawerContent className="w-full grid place-items-center">
                                             <div className="w-full max-w-[450px]">
@@ -164,8 +161,8 @@ export default function Voucher() {
                                             </div>
                                         </DrawerContent>
                                     </Drawer>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
