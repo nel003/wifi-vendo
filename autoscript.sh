@@ -459,6 +459,26 @@ ipset create allowed_macs hash:mac timeout 2147483 -exist
 # IPTABLES (NO GLOBAL FLUSH)
 # ---------------------------
 
+# 1. Create a new chain called "ANTITETHER" safely
+iptables -t mangle -N ANTITETHER 2>/dev/null || true
+
+# 2. Flush it to ensure we don't duplicate rules if script runs twice
+iptables -t mangle -F ANTITETHER
+
+# 3. Define the Rules:
+# If TTL is 64, 128 or 255, RETURN to the main chain (pass to your MAC filters)
+iptables -t mangle -A ANTITETHER -m ttl --ttl-eq 64 -j RETURN
+iptables -t mangle -A ANTITETHER -m ttl --ttl-eq 128 -j RETURN
+iptables -t mangle -A ANTITETHER -m ttl --ttl-eq 255 -j RETURN
+
+# 4. If TTL is NOT 64, 128 or 255, DROP it immediately
+iptables -t mangle -A ANTITETHER -j DROP
+
+# 5. Insert this check at the very top of PREROUTING
+# We use -I (Insert) to ensure this runs BEFORE your MAC address marking
+iptables -t mangle -C PREROUTING -i "$LAN_IFACE" -j ANTITETHER 2>/dev/null \
+  || iptables -t mangle -I PREROUTING -i "$LAN_IFACE" -j ANTITETHER
+
 iptables -t mangle -D PREROUTING -i "$LAN_IFACE" -m set ! --match-set allowed_macs src \
   -j MARK --set-mark 99 2>/dev/null || true
 
@@ -480,9 +500,7 @@ iptables -C FORWARD -i "$LAN_IFACE" -m mark --mark 99 -j DROP 2>/dev/null \
 iptables -t nat -C POSTROUTING -o "$WAN_IFACE" -j MASQUERADE 2>/dev/null \
   || iptables -t nat -A POSTROUTING -o "$WAN_IFACE" -j MASQUERADE
 
-# Disable hotspot sharing by setting TTL to 1 on LAN outbound traffic
-iptables -t mangle -C POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1 2>/dev/null \
-  || iptables -t mangle -A POSTROUTING -o "$LAN_IFACE" -j TTL --ttl-set 1
+iptables -t mangle -A POSTROUTING -o "$WAN_IFACE" -j TTL --ttl-set 64
 
 # ---------------------------
 # SYSCTL (SAFE VALUES)
