@@ -554,23 +554,62 @@ NGINX_SITE="/etc/nginx/sites-available/nodeapp"
 cat <<'EOF' > "$NGINX_SITE"
 server {
     listen 80;
-    server_name yourdomain.com; # Change to your domain or use `_` for all requests
+    server_name _;
 
+    # Rate limiting
+    limit_req zone=req_limit burst=20 nodelay;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+    add_header Cross-Origin-Embedder-Policy "require-corp" always;
+    add_header Cross-Origin-Resource-Policy "same-origin" always;
+
+    add_header X-Permitted-Cross-Domain-Policies "none" always;
+    add_header Clear-Site-Data "\"cache\", \"cookies\", \"storage\"" always;
+
+    add_header Content-Security-Policy "
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: blob:;
+    font-src 'self' data:;
+    connect-src
+      'self'
+      https://dns.google
+      ws:
+      wss:;
+    frame-ancestors 'self';
+    " always;
+
+    # Block sensitive files
+    location ~* (\.env|\.git|\.log|\.bak)$ {
+        deny all;
+        return 404;
+    }
+
+    # Reverse proxy to Next.js
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
 
-        # WebSocket support
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
-        proxy_cache_bypass $http_upgrade;
 
-        # Forwarding client information
-        proxy_set_header Referrer "$scheme://$host$request_uri";
+        proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Host $host;
+
+        proxy_hide_header X-Powered-By;
+
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 30s;
     }
 }
 EOF
