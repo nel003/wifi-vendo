@@ -549,6 +549,56 @@ systemctl start network-shaping.service
 
 echo "🚀 network-shaping.service enabled (runs at boot)"
 
+NGINX_CONF="/etc/nginx/nginx.conf"
+N_BACKUP_DIR="/etc/nginx/backup"
+TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+
+# ---------------------------
+# Backup existing config
+# ---------------------------
+mkdir -p "$N_BACKUP_DIR"
+cp "$NGINX_CONF" "$N_BACKUP_DIR/nginx.conf.$TIMESTAMP.bak"
+
+echo "✅ Backup created:"
+echo "   $N_BACKUP_DIR/nginx.conf.$TIMESTAMP.bak"
+
+# ---------------------------
+# Overwrite nginx.conf
+# ---------------------------
+cat <<'EOF' > "$NGINX_CONF"
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    server_tokens off;
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+
+    access_log /var/log/nginx/access.log;
+    error_log  /var/log/nginx/error.log warn;
+
+    # Rate limit zone (GLOBAL)
+    limit_req_zone $binary_remote_addr zone=req_limit:10m rate=10r/s;
+
+    gzip on;
+
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}
+EOF
+
+echo "✅ nginx.conf overwritten"
+
 NGINX_SITE="/etc/nginx/sites-available/nodeapp"
 
 cat <<'EOF' > "$NGINX_SITE"
