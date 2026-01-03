@@ -242,86 +242,88 @@ export default function Page() {
                     <CardHeader className="p-0 hidden">
                         <CardTitle></CardTitle>
                     </CardHeader>
-                    <CardContent className="p-0">
-                        <Table>
-                            <TableHeader className="bg-slate-50">
-                                <TableRow>
-                                    <TableHead className="w-[80px]">ID</TableHead>
-                                    <TableHead>Voucher Code</TableHead>
-                                    <TableHead>Details</TableHead>
-                                    <TableHead className="text-right">Status</TableHead>
-                                    <TableHead className="w-[80px]"></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredVouchers.length === 0 ? (
+                    <CardContent className="p-0 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader className="bg-slate-50">
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center text-slate-500">
-                                            No vouchers found.
-                                        </TableCell>
+                                        <TableHead className="w-[80px] hidden md:table-cell">ID</TableHead>
+                                        <TableHead>Voucher Code</TableHead>
+                                        <TableHead>Details</TableHead>
+                                        <TableHead className="text-right">Status</TableHead>
+                                        <TableHead className="w-[80px]"></TableHead>
                                     </TableRow>
-                                ) : (
-                                    filteredVouchers.map((vouch) => (
-                                        <TableRow key={vouch.id} className="hover:bg-slate-50/50">
-                                            <TableCell className="font-mono text-xs text-slate-500">{vouch.id}</TableCell>
-                                            <TableCell>
-                                                <div
-                                                    className="inline-flex items-center gap-2 cursor-pointer select-none"
-                                                    onClick={() => setVouchers(vouchers.map(v => ({ ...v, hidden: v.id === vouch.id ? !v.hidden : v.hidden })))}
-                                                >
-                                                    <Ticket className="h-4 w-4 text-slate-400" />
-                                                    <span className={cn("font-mono font-medium", vouch.hidden ? "text-slate-400" : "text-slate-900 tracking-wider")}>
-                                                        {vouch.hidden ? "••••••••" : vouch.voucher}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex gap-4 text-sm text-slate-600">
-                                                    <span className="flex items-center gap-1">
-                                                        <Coins className="h-3 w-3" /> {vouch.price.toLocaleString("en-PH", { style: "currency", currency: "PHP" })}
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        <Timer className="h-3 w-3" /> {vouch.time}m
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {vouch.used ? (
-                                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
-                                                        Used
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
-                                                        Unused
-                                                    </span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-red-600">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Delete Voucher?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Are you sure you want to delete this voucher? This action cannot be undone.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => del(vouch.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredVouchers.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+                                                No vouchers found.
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
+                                    ) : (
+                                        filteredVouchers.map((vouch) => (
+                                            <TableRow key={vouch.id} className="hover:bg-slate-50/50">
+                                                <TableCell className="font-mono text-xs text-slate-500 hidden md:table-cell">{vouch.id}</TableCell>
+                                                <TableCell>
+                                                    <div
+                                                        className="inline-flex items-center gap-2 cursor-pointer select-none"
+                                                        onClick={() => setVouchers(vouchers.map(v => ({ ...v, hidden: v.id === vouch.id ? !v.hidden : v.hidden })))}
+                                                    >
+                                                        <Ticket className="h-4 w-4 text-slate-400" />
+                                                        <span className={cn("font-mono font-medium", vouch.hidden ? "text-slate-400" : "text-slate-900 tracking-wider")}>
+                                                            {vouch.hidden ? "••••••••" : vouch.voucher}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex gap-4 text-sm text-slate-600">
+                                                        <span className="flex items-center gap-1">
+                                                            <Coins className="h-3 w-3" /> {vouch.price.toLocaleString("en-PH", { style: "currency", currency: "PHP" })}
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <Timer className="h-3 w-3" /> {vouch.time}m
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {vouch.used ? (
+                                                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+                                                            Used
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
+                                                            Unused
+                                                        </span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-red-600">
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Delete Voucher?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Are you sure you want to delete this voucher? This action cannot be undone.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => del(vouch.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

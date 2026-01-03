@@ -261,8 +261,8 @@ export default function Page() {
                                                                             {date ? format(date, "PPP") : <span>Pick a new expiry date</span>}
                                                                         </Button>
                                                                     </PopoverTrigger>
-                                                                    <PopoverContent className="flex w-auto flex-col space-y-2 p-2" align="start">
-                                                                        <Select
+                                                                    <PopoverContent className="flex min-w-full flex-col space-y-2 p-2" align="start">
+                                                                        {/* <Select
                                                                             onValueChange={(value) =>
                                                                                 setDate(addDays(new Date(), parseInt(value)))
                                                                             }
@@ -276,9 +276,15 @@ export default function Page() {
                                                                                 <SelectItem value="7">7 Days</SelectItem>
                                                                                 <SelectItem value="30">30 Days</SelectItem>
                                                                             </SelectContent>
-                                                                        </Select>
-                                                                        <div className="rounded-md border">
-                                                                            <Calendar mode="single" selected={date} onSelect={setDate} />
+                                                                        </Select> */}
+                                                                        <div className="rounded-md border w-full">
+                                                                            <Calendar
+                                                                                mode="single"
+                                                                                selected={date}
+                                                                                onSelect={setDate}
+                                                                                className="rounded-md border shadow-sm w-full"
+                                                                                captionLayout="dropdown"
+                                                                            />
                                                                         </div>
                                                                     </PopoverContent>
                                                                 </Popover>
